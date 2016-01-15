@@ -1,0 +1,25 @@
+> Partial target, IUPAC codes, incompatible base pairs
+.((((....))))..,(,,,,,,,,),
+ANNNNGNRANNNNNNNNNNNNNNNNNN
+#MAXsol
+1
+#AAsimilCstr
+5
+#MaxBlosumScore
+0
+#IncompBP
+P 1 2 26,P 3 16 2,4 17,4 18,4 19
+#RNAlibrary
+Vienna
+#EnergyModel
+2004
+#MFEstructure
+1
+#MinimizeEnsDef
+0
+#dangles
+1
+#temp
+37
+#LNS
+0

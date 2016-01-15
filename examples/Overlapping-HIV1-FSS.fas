@@ -1,0 +1,27 @@
+> Overlapping amino acid constraints
+......((((((..((((((((((((....))))))))))))...)))))).
+UUUUUUANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+#MAXsol
+0
+#AAtarget
+FFREDLAFPQGKAREFS,FLGKIWPSHKGRPGNFL
+#AAsimilCstr
+2
+#AAstartPos
+1,2
+#MaxBlosumScore
+0
+#RNAlibrary
+Vienna
+#EnergyModel
+2004
+#MFEstructure
+1
+#MinimizeEnsDef
+0
+#dangles
+1
+#temp
+37
+#LNS
+0

@@ -1,0 +1,25 @@
+> Selenocystein insertion in AJF73661.1 140
+.....(((((.((.(((.(((....)))))).)).)))))..
+UGANNNNNNNNNNNNNNUNNNGGUCNNNNNNNNNNNNNNNNN
+#MAXsol
+0
+#AAtarget
+UHGPSVAGLQQALG
+#AAsimilCstr
+-1
+#MaxBlosumScore
+1
+#RNAlibrary
+Vienna
+#EnergyModel
+2004
+#MFEstructure
+1
+#MinimizeEnsDef
+0
+#dangles
+2
+#temp
+37
+#LNS
+0

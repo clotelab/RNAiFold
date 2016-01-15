@@ -1,0 +1,3 @@
+# Gamma distribution parameters: first line is for paired reactivities, second line for unpaired. Order: shape, location and scale
+0.668918986169 0 0.268161495459
+0.641092593747 0 0.8373230903

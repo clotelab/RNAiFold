@@ -1,0 +1,24 @@
+> Amino acid optimization sample
+.((((((.((.((.((((....)))))).)).))))))....
+#MAXsol
+0
+#AAtarget
+IFSSLPGLVPKGKE
+#AAsimilCstr
+6
+#MaxBlosumScore
+1
+#RNAlibrary
+Vienna
+#EnergyModel
+2004
+#MFEstructure
+1
+#MinimizeEnsDef
+0
+#dangles
+1
+#temp
+37
+#LNS
+0

@@ -1,0 +1,27 @@
+> tRNA structure with sequence constraints
+(((((.(..((((.........)))).(((((.......))))).....(((((.......)))))).))))).
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNACGNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCUGGCUCG
+#MAXsol
+5
+#AAsimilCstr
+5
+#MaxBlosumScore
+0
+#RNAlibrary
+Vienna
+#EnergyModel
+2004
+#MFEstructure
+1
+#MinimizeEnsDef
+0
+#dangles
+2
+#temp
+37
+#minGC
+10
+#maxGC
+20
+#LNS
+1
