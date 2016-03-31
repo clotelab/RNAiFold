@@ -17,7 +17,7 @@ RNAiFold3.1 - Clotelab - Boston College
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.     *
  ******************************************************************************/
 
-COMPILING RNAiFold 3.0:
+COMPILING RNAiFold 3.1:
 
 Requirements:
 	- Software is developed in OR-Tools (https://github.com/google/or-tools), which is required for compiling RNAiFold.

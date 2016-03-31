@@ -570,9 +570,9 @@ namespace operations_research {
 		vector<vector<int> > UPtypes = tree_group->optimizeUPHeuristic(n,BPO,BPC,str_int);
 
 
-//		if(BPtypes.size()>1){
-//			varHeuristic = SH_MULTI_STR;
-//		}
+		if(BPtypes.size()>1){
+			varHeuristic = SH_MULTI_STR;
+		}
 
 		upthreshold_=upthreshold;
 		bpthreshold_=bpthreshold;
