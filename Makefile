@@ -15,7 +15,7 @@
 #  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.     *
 #  ******************************************************************************/
 
-ORTOOLS_DIR=$(HOME)/OR-Tools-src/or-tools-read-only
+ORTOOLS_DIR=$(HOME)/OR-Tools-src/or-tools-2015-12
 ORTOOLS_DEPENDENCIES_INCLUDES=$(ORTOOLS_DIR)/dependencies/install/include
 ORTOOLS_SRC=$(ORTOOLS_DIR)/src
 ORTOOLS_LIB=$(ORTOOLS_DIR)/lib
@@ -23,9 +23,52 @@ ORTOOLS_DEPENDENCIES_LIB=$(ORTOOLS_DIR)/dependencies/install/lib
 
 VIENNA_FILES = data_structures.h  energy_const.h  fold_vars.h  libRNA.a  viennaC.cc  viennaC.h
 
+############## Operating-System and Processor Architecture Detection #########
+# This section attempts to auto-detect the OS. This is used only for convenience
+# and allows the same Makefile to be used on multiple operating systems
+# without modification.
+# You can circumvent auto-detection by setting these environment variables:
+#   RNA_MAKE_OS   -- the operating system name (e.g. Linux, Windows, Mac)
+#   RNA_MAKE_ARCH -- the target architecture (e.g. x86 or x86_64)
+# (These can be set as environment variables or on the MAKE command-line. 
+#    e.g. `make all RNA_MAKE_OS=Linux`)
+    ifneq (${RNA_MAKE_OS},) 
+      #if RNA_MAKE_OS is NOT blank, use it as the OS
+      OPSYSTEM=$(RNA_MAKE_OS)
+    else ifeq (${OPSYSTEM},)
+      # IF both RNA_MAKE_OS and OPSYSTEM are blank, use the `uname` command 
+      #   (if available) to determine the OS.
+      #   Replace 'UNKNOWN' with default OS if desired. 
+      OPSYSTEM_RAW:=$(shell uname -s 2>/dev/null || echo UNKNOWN) 
+      # Perform some replacements to normalize the output of uname on various systems.
+      # OS_REPLACEMENTS= CYGWIN%=Windows MSYS%=Windows Darwin=Mac GNU%=Linux
+      OPSYSTEM := $(OPSYSTEM_RAW:CYGWIN%=Windows)
+      OPSYSTEM := $(OPSYSTEM:MSYS%=Windows)
+      OPSYSTEM := $(OPSYSTEM:Darwin=Mac)
+      OPSYSTEM := $(OPSYSTEM:GNU%=Linux)
+      $(if $(DEBUG), $(info Make: Operating System: $(OPSYSTEM)))
+      export OPSYSTEM #make it available for recursive calls to make, so auto-detection is performed only once.
+    endif
+
+
 CXX     	= g++
-CXXFLAGS        = -fPIC -std=c++0x -O4 -DNDEBUG -I$(ORTOOLS_SRC) -DARCH_K8 -Wno-deprecated -DUSE_CBC -DUSE_CLP
-LDFLAGS         = -Wl,-Bstatic -lconstraint_solver -lglop -llinear_solver -lalgorithms -lshortestpaths -lsat -lgraph -lbase -lutil -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -Wl,-Bdynamic -lz -lrt -lpthread -lstdc++ -lgcc -lm  -L./RNAstructure -l RNA -l HybridRNA 
+CXXFLAGS        = -fPIC -std=c++0x -O4 -DNDEBUG -I$(ORTOOLS_SRC) -I$(ORTOOLS_DEPENDENCIES_INCLUDES) -DARCH_K8 -Wno-deprecated -DUSE_CBC -DUSE_CLP
+    ifeq (${OPSYSTEM},Linux)
+      ############ LINUX ##########################################################
+      LDFLAGS         = -Wl,-Bstatic -lconstraint_solver -lglop -llinear_solver -lalgorithms -lshortestpaths -lsat -lgraph -lbase -lutil -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -Wl,-Bdynamic -lz -lrt -lpthread -lstdc++ -lgcc -lm  -L./RNAstructure -l RNA -l HybridRNA 
+    else ifeq (${OPSYSTEM},Mac)
+      ############ MAC ############################################################
+      LDFLAGS         = -lconstraint_solver -lglop -llinear_solver -lalgorithms -lshortestpaths -lsat -lgraph -lbase -lutil -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -lz -lpthread -lstdc++ -lm -L./RNAstructure -l RNA -l HybridRNA 
+    else ifeq (,${OPSYSTEM})
+      ############ NO OS ########################################################
+	  $(error No Operating system defined!!!)
+    else ifeq (${OPSYSTEM},Windows)
+      ############ WINDOWS ########################################################
+      LDFLAGS         = -Wl,-Bstatic -lconstraint_solver -lglop -llinear_solver -lalgorithms -lshortestpaths -lsat -lgraph -lbase -lutil -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -Wl,-Bdynamic -lz -lrt -lpthread -lstdc++ -lgcc -lm  -L./RNAstructure -l RNA -l HybridRNA 
+   else
+	  ############ UNKNOWN OS ###################################################
+      $(error Unknown Operating system defined: $(OPSYSTEM))
+    endif
 
 all: RNAiFold
 

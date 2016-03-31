@@ -1,8 +1,7 @@
 #pragma once 
 
 #include "defines.h"
-
-
+#include <iostream>
 
 #ifdef EXTENDED_DOUBLE
 	#include "extended_double.h" //inlcude code for extended double if needed
@@ -36,14 +35,39 @@ class pfunctionclass {
       ~pfunctionclass();
 
       //f is an integer function that references the correct element of the array
-	  inline PFPRECISION &f(int i, int j) {
-				  
-		   if (i>j) {
-				return infinite;
-			}
-		   else if (i>Size) return f(i-Size,j-Size);
-		   else return dg[i][j];
-	  }
+	inline PFPRECISION &f(int i, int j) {
+		   /* In the dg array, each ith column is shifted up by i steps.
+		    * For example, if Size = 5, the dg array would be arranged as follows:
+		    *   (Where ^ represents a shift upwards, and 0 represents a valid address. 
+		    *   Positions marked by ^ or empty space are invalid.)
+		    *
+		    *         8|    0
+		    *         7|   00
+		    *    j    6|  000    This means that valid values of i go from i to i+Size-1
+		    *         5| 0000      (e.g.  for column i=3,   j can be 3 to 7, inclusive)
+		    *    a    4|00000    Correspondingly, any combination of i and j for which 
+		    *    x    3|0000^      j<i or j>i+Size-1  are INVALID.    
+		    *    i    2|000^^      (e.g. for column i=4: j=3 is invalid and j=8
+		    *    s    1|00^^^    During computation, i is allowed to go ABOVE Size, in which case
+		    *         0|0^^^^      j must also be greater than Size. The action in this case is to 
+		    *          |-----       return the value at (i-Size, j-Size). So in the example at right, 
+		    *          |01234       f(5, 7) would return f(0, 2).
+		    *           i-axis
+		    */
+		if (j<i) {
+			return infinite; //invalid position
+		} else if (j>i+Size-1) {
+			fprintf (stderr, "WARNING: j out of bounds in pfunctionclass::f(%d, %d); Size=%d.\n", i, j, Size);
+			return infinite;
+		} else if (i<1||i>2*Size-1) { //Note that due to the inequality check above, i is also greater than Size.
+			fprintf (stderr, "WARNING: i out of bounds in pfunctionclass::f(%d, %d); Size=%d.\n", i, j, Size);
+			return infinite;
+		} else if (i>Size) { 
+			//Note that due to the inequality check above, j must also be greater than Size.
+			return f(i-Size,j-Size);
+		} else
+			return dg[i][j];
+	}
 };
 
 
@@ -121,7 +145,7 @@ void readpfsave(const char *filename, structure *ct,
 			 pfunctionclass *v, pfunctionclass *w, pfunctionclass *wmb, pfunctionclass *wl, pfunctionclass *wmbl, pfunctionclass *wcoax,
 			 forceclass *fce, PFPRECISION *scaling, bool *mod, bool *lfce, pfdatatable *data);
 PFPRECISION calculateprobability(int i, int j, pfunctionclass *v, PFPRECISION *w5, structure *ct, pfdatatable *data, bool *lfce, bool *mod, PFPRECISION scaling, forceclass *fce);
-void rescale(int i, int j,structure *ct, pfdatatable *data, pfunctionclass *v, pfunctionclass *w, pfunctionclass *wl, pfunctionclass *wcoax,
+void rescale(int currenth,structure *ct, pfdatatable *data, pfunctionclass *v, pfunctionclass *w, pfunctionclass *wl, pfunctionclass *wcoax,
 			 pfunctionclass *wmb,pfunctionclass *wmbl, PFPRECISION *w5, PFPRECISION *w3, PFPRECISION **wca, PFPRECISION **curE, PFPRECISION **prevE, PFPRECISION rescalefactor); //function to rescale all arrays when partition function calculation is headed out
 															//of bounds
 //void rescaleatw3(int ii,structure *ct, pfdatatable *data, pfunctionclass *v, pfunctionclass *w, pfunctionclass *wl, pfunctionclass *wcoax,

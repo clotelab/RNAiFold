@@ -43,13 +43,13 @@ class HybridRNA:  public RNA {
 		//!		thermodynamic parameters have not been read and therefore they will be read by this function call.  The 
 		//!		parameter files should be located in the directory specified by the environment variable $DATAPATH of the pwd.
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
-		//! \param gamma is a scaling factor that weights accessibility.  
-		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.
-		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.
-		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).
+		//! \param gamma is a scaling factor that weights accessibility.  The defaults is 0.4
+		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.  The default is 50.
+		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.  The fefault is 20.
+		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).  The default is 0.
 		//!	\param maxinternalloopsize is the maximum number of unpaired nucleotides in bulge and internal loops.  This is used to accelerate the prediction speed.  The default is 30.
 		//! \return An int that indicates an error code (0 = no error, 5 = error reading thermodynamic parameter files, 14 = traceback error).
-		int AccessFold(const double gamma, const float percent, const int maximumstructures, const int window, const int maxinternalloopsize = 30);
+		int AccessFold(const double gamma=0.4, const float percent=50, const int maximumstructures=20, const int window=0, const int maxinternalloopsize = 30);
 		
 		//! Predict the lowest free energy secondary structure and generate suboptimal structures using a heuristic.
 
@@ -58,13 +58,13 @@ class HybridRNA:  public RNA {
 		//!		thermodynamic parameters have not been read and therefore they will be read by this function call.  The 
 		//!		parameter files should be located in the directory specified by the environment variable $DATAPATH of the pwd.
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
-		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.
-		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.
-		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).
+		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.  The default is 10.
+		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.  The defaults is 20.
+		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).  The default is 0.
 		//!	\param savefile is c string containing a file path and name for a savefile (.sav)that can be used to generate energy dot plots and to refold the secondary structure using different suboptimal structure parameters.  The default is "", which results in no save file written.
 		//!	\param maxinternalloopsize is the maximum number of unpaired nucleotides in bulge and internal loops.  This is used to accelerate the prediction speed.  The default is 30.
 		//! \return An int that indicates an error code (0 = no error, 5 = error reading thermodynamic parameter files, 14 = traceback error).
-		int FoldBimolecular(const float percent, const int maximumstructures, const int window, const char savefile[]="", const int maxinternalloopsize = 30);
+		int FoldBimolecular(const float percent=10, const int maximumstructures=20, const int window=0, const char savefile[]="", const int maxinternalloopsize = 30);
 
 		//! Predict the lowest free energy secondary structure for two strands that cannot form intramolecular pairs and generate suboptimal structures using a heuristic.
 
@@ -74,12 +74,12 @@ class HybridRNA:  public RNA {
 		//!		thermodynamic parameters have not been read and therefore they will be read by this function call.  The 
 		//!		parameter files should be located in the directory specified by the environment variable $DATAPATH of the pwd.
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
-		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.
-		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.
-		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).
+		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.  The default is 40.
+		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.  The default is 10.
+		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).  The default is 0.
 		//!	\param maxinternalloopsize is the maximum number of unpaired nucleotides in bulge and internal loops.  This is used to accelerate the prediction speed.  The default is 30.
 		//! \return An int that indicates an error code (0 = no error, 5 = error reading thermodynamic parameter files, 14 = traceback error).
-		int FoldDuplex(const float percent, const int maximumstructures, const int window, const int maxinternalloopsize = 30);
+		int FoldDuplex(const float percent=40, const int maximumstructures=10, const int window=0, const int maxinternalloopsize = 30);
 
 		
 		//! Predict the bimolecular partition function for a sequence (with no intramolecular pairs).

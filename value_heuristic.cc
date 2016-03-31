@@ -147,6 +147,8 @@ namespace operations_research {
 		}
 		return retVal;
 	}
+
+
 	
 	int64 BpValueSelectorBoltz::Select(const IntVar* const v, int64 id) {
 		int64 retVal;
@@ -204,6 +206,7 @@ namespace operations_research {
 		return retVal;
 	}
 
+		
 	int64 StackValueSelectorContainsBoltz::Select(const IntVar* const v, int64 id) {
 		int64 retVal;
 		double randVal;
@@ -231,8 +234,98 @@ namespace operations_research {
 		return retVal;
 	}
 
+	int64 ThreePrimeValueSelector::Select(const IntVar* const v, int64 id) {
+		int64 retVal;
+		double randVal;
+				
+		vector<int> currentDomain;
+		if(vars_[id-1]->Bound()){
+			currentDomain = fivePrimeDom[vars_[id-1]->Value()];
+		}
+		else{
+			currentDomain = fivePrimeDom[4];
+		}
+		
+		for(int i=0;i<currentDomain.size();i++){
+			if(v->Contains(currentDomain[i])){
+				retVal=currentDomain[i];
+				randVal=rand()%100;
+				if(randVal<threshold_){
+					return retVal;
+				}
+			}
+		}
+		
+		return retVal;
+	}
 
+	std::vector<std::vector<int> > SimplifiedBPenergyHeuristic::orderArray_;
+	std::vector<std::vector<int> > SimplifiedBPenergyHeuristic::random_;
+	std::vector<std::vector<int> > SimplifiedBPenergyHeuristic::baseOrder_;
 
+	int64 SimplifiedBPenergyHeuristic::Select(const IntVar* const v, int64 id) {
+		int64 retVal;
+		double randVal;
+
+		if(random_[id][0]==NO_RAND_ASSIGN){
+			std::vector<int> y;
+			std::vector<int> tmpOrder;
+
+			if(value_selector_type_.at(id)==VH_BP_STACK_INV){
+				for(int i=0;i<bpdomain.size();i++){
+					y.push_back(i);
+					if(vars_[id-1]->Bound()){
+						random_.at(id)[i] = baseStackInv.at(vars_[id-1]->Value())[i]+(rand()%200);
+					}
+					else{
+						random_.at(id)[i] = baseStackInv.at(0)[i]+rand()%200;
+					}
+				}
+			} 
+			else if (value_selector_type_.at(id)==VH_BP_STACK){
+				for(int i=0;i<bpdomain.size();i++){
+					y.push_back(i);
+					if(vars_[id-1]->Bound()){
+						random_.at(id)[i] = baseStack.at(vars_[id-1]->Value())[i]+(rand()%200);
+					}
+					else{
+						random_.at(id)[i] = baseStack.at(0)[i]+rand()%200;
+					}
+				}
+			}
+			else if (value_selector_type_.at(id)==VH_BP){
+				for(int i=0;i<bpdomain.size();i++){
+					y.push_back(i);
+					random_.at(id)[i] = baseStack.at(0)[i]+rand()%200;
+				}
+			}
+			else{
+				for(int i=0;i<bpdomain.size();i++){
+					y.push_back(i);
+					random_.at(id)[i] = baseEnergyMulti[i]+rand()%200;
+				}
+			}
+			std::sort(y.begin(), y.end(), IdxCompare(random_.at(id)));
+
+			for(int i=0;i<bpdomain.size();i++){
+				orderArray_.at(id)[i] = baseOrder_.at(id)[y[i]];
+			}
+		}
+
+		for(int i=0;i<bpdomain.size();i++){
+			if(v->Contains(orderArray_.at(id)[i])){
+				retVal=orderArray_.at(id)[i];
+				if(v->Size()==2){
+					orderArray_.at(id)=baseOrder_.at(id);
+					random_.at(id).assign(bpdomain.size(),NO_RAND_ASSIGN);
+				}
+				return retVal;
+			}
+		}
+
+		return retVal;		
+		
+	}
 	// VariableAssignmentSelector functions	
 	std::string VariableAssignmentSelector::DebugString() const {
 		return var_selector_->DebugString() + "_" + var_selector_->VarDebugString() + "\n Value Selectors: " + std::to_string(value_selectors_.size());
@@ -312,20 +405,34 @@ namespace operations_research {
 			value_selectors.push_back(s->RevAlloc(new StackValueSelectorContainsBoltz(vars)));
 		}
 		else {
-			value_selectors.push_back(s->RevAlloc(new BpValueSelectorRand(bpthreshold)));
-			value_selectors.push_back(s->RevAlloc(new StackValueSelectorContainsRand(vars, bpthreshold)));
+			//value_selectors.push_back(s->RevAlloc(new BpValueSelectorRand(bpthreshold)));
+			value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
+			
+			value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
 		}
 		value_selectors.push_back(s->RevAlloc(new RandomValueSelector));		
 
 		// Value selector for multiple structures
-		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,0)));
-		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,1)));
+/*		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,0)));
+		value_selectors.push_back(s->RevAlloc(new BpValueSelector));
 		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,2)));
 		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,3)));
 		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,4)));
-		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,5)));
+		value_selectors.push_back(s->RevAlloc(new BpValueSelectorMultiRand(bpthreshold,5)));*/
+		
+		value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
+//		value_selectors.push_back(s->RevAlloc(new BpValueSelector));
+		value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
+		value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
+		value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
+		value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
+		value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
+		
+		
 		value_selectors.push_back(s->RevAlloc(new UpValueSelectorClosing(upthreshold)));
+		value_selectors.push_back(s->RevAlloc(new ThreePrimeValueSelector(vars, upthreshold)));
 
+		value_selectors.push_back(s->RevAlloc(new SimplifiedBPenergyHeuristic(vars, bpthreshold, value_selector_type)));
 
 
 		// BaseVariableAssignmentSelector

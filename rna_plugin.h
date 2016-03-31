@@ -36,6 +36,8 @@ class RNAPlugin{
 		virtual double probOfStruct() = 0;
 		virtual int* getBasePairs() = 0;
 		virtual int* getBasePairs1Index() = 0;
+		virtual void fillBasePairs1Index(int *bprs) = 0;
+		
 		virtual double* basePairProbsArray() = 0;  
 		virtual double** basePairProbsMatrix() = 0;
 		virtual double* basePairProbsArrayCofold() = 0;

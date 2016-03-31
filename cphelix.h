@@ -32,10 +32,19 @@ namespace operations_research {
 			void setI(int _i);
 			int getJ();
 			void setJ(int _j);
+			
+			int getTryLeft();
+			void setTryLeft(int new_val);
+			int getTryRight();
+			void setTryRight(int new_val);
+			
 			int getParent();
 			void setParent(int _parent);
 			int getLevel();
 			void setLevel(int _level);
+
+			int getLeavesDistance();
+			void setLeavesDistance(int distance);
 
 			int getPosLeft();
 			void setPosLeft(int npos);
@@ -86,7 +95,11 @@ namespace operations_research {
 			int parent;
 			int level;
 			int pos_left;
-			int pos_right;			
+			int pos_right;
+			int try_left;
+			int try_right;
+			int leaves_distance;
+			
 			std::vector<int> inside;
 			std::vector<int> positions;
 			std::vector<int> bps;

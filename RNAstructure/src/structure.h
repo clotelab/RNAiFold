@@ -15,7 +15,7 @@ using namespace std;
 	#include "extended_double.h" //inlcude code for extended double if needed
 #endif//defined EXTENDED_DOUBLE
 
-//This is a depracted array size that must be removed:
+//This is a deprecated array size that must be removed:
 #define maxforce 3000
 
 //Single structure is a wrapper for the information associated with just a single structure, i.e. pairs, energy, and labels.
@@ -190,7 +190,7 @@ short int SHAPEss_give_value(int index);  //Returns the single stranded SHAPE ps
 		//! \return a string that gives the label.
 		string GetCtLabel(int structurenumber);
 
-		//! Get the energy for structure numer structurenumber.
+		//! Get the energy for structure number structurenumber.
 
 		//! This function requires that an energy calculation has been performed.  It does not do an eenrgy calculation.
 		//! \param structurenumber is an int that gives the structure number being indexed, this is one indexed.

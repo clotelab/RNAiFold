@@ -12,7 +12,7 @@
 #else
 
 #ifdef _JAVA_GUI
-#include "../RNAstructure_java_interface/SWIG/TProgressDialog.h"
+#include "../java_interface/SWIG/TProgressDialog.h"
 #else
 #include "TProgressDialog.h"
 #endif // JAVA GUI
@@ -56,27 +56,27 @@ void energyout(structure *ct,char *enrgyfile);
 		//maxinter is the maximum number of unpaired nucleotides allowed in an internal loop
 	//This returns an error code, where zero is no error and non-zero indicates a traceback error.
 int dynamic (structure *ct,datatable *data,int cntrl6,int cntrl8,int cntrl9,
-	TProgressDialog* update=0, bool quickenergy = false, char* savfile = 0, int maxinter = 30, bool quickstructure = false);
+	TProgressDialog* update=0, bool quickenergy = false, char* savfile = 0, int maxinter = 30, bool quickstructure = false, bool simple_iloops = true);
 
 
 void fill(structure *ct, arrayclass &v, arrayclass &w, arrayclass &wmb, forceclass &fce, int &vmin,bool *lfce, bool *mod,
           integersize *w5, integersize *w3, bool quickenergy,
-          datatable *data, arrayclass *w2, arrayclass *wmb2, arrayclass *we,TProgressDialog* update = 0, int maxinter = 30, bool quickstructure = false);
+          datatable *data, arrayclass *w2, arrayclass *wmb2, arrayclass *we,TProgressDialog* update = 0, int maxinter = 30, bool quickstructure = false, bool simple_iloops = true);
 
 
 //The fill step of the dynamic programming algorithm for free energy minimization:
 void fill(structure *ct, arrayclass &v, arrayclass &w, arrayclass &wmb, forceclass &fce, int &vmin,bool *lfce, bool *mod,
 		  integersize *w5, integersize *w3, bool qickenergy,
-		  datatable *data, arrayclass *w2, arrayclass *wmb2, TProgressDialog* update=0, int maxinter = 30, bool quickstructure = false);
+		  datatable *data, arrayclass *w2, arrayclass *wmb2, TProgressDialog* update=0, int maxinter = 30, bool quickstructure = false, bool simple_iloops = true);
 
 //this overloaded dynamic function is used by NAPSS program to generate a special format dotplot
 void dynamic (structure *ct,datatable* data,int cntrl6, int cntrl8,int cntrl9,
               arrayclass *v, arrayclass *vmb/*tracks MB loops*/, arrayclass *vext/*tracks exterior loops*/,
-              TProgressDialog* update=0, bool quickenergy = false, char* savefile = 0, int maxinter = 30, bool quickstructure = false);
+              TProgressDialog* update=0, bool quickenergy = false, char* savefile = 0, int maxinter = 30, bool quickstructure = false, bool simple_iloops = true);
 //this overloaded fill function is used to NAPSS program to generate a special format dotplot
 void fill(structure *ct, arrayclass &v, arrayclass &vmb, arrayclass &vext, arrayclass &w, arrayclass &wmb, forceclass &fce, 
           int &vmin, bool *lfce, bool *mod,integersize *w5, integersize *w3, bool quickenergy,
-          datatable *data, arrayclass *w2, arrayclass *wmb2, TProgressDialog* update=0, int maxinter = 30, bool quickstructure = false);
+          datatable *data, arrayclass *w2, arrayclass *wmb2, TProgressDialog* update=0, int maxinter = 30, bool quickstructure = false, bool simple_iloops = true);
 
 void errmsg(int err,int err1);//function for outputting info in case of an error
 void update (int i);//function informs user of progress of fill algorithm

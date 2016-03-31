@@ -342,6 +342,28 @@ int* RNAstructurePlugin::getBasePairs1Index(){
 	return bprs;
 }
 
+void RNAstructurePlugin::fillBasePairs1Index(int *bprs){
+	int i;
+	int n = _seq.size();
+	int stck[n];
+	int pointer = 0;
+	bprs[0]=n;
+	for(i=0;i<n;i++){
+		if(_str[i]=='('){
+			stck[pointer]=i;
+			pointer++;
+		}
+		if(_str[i]==')'){
+			bprs[i+1]=stck[pointer-1]+1;
+			bprs[stck[pointer-1]+1]=i+1;
+			pointer--;
+		}
+		if(_str[i]=='.')
+			bprs[i+1]=-1;
+	}
+	return;
+}
+
 double* RNAstructurePlugin::basePairProbsArray(){
 	int i,j;
 	int n = _seq.size();

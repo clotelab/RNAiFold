@@ -43,6 +43,7 @@ class RNAstructurePlugin : public RNAPlugin {
 		double probOfStruct();
 		int* getBasePairs();
 		int* getBasePairs1Index();
+		void fillBasePairs1Index(int *bprs);
 		double* basePairProbsArray();  
 		double** basePairProbsMatrix();
 		double* basePairProbsArrayCofold();

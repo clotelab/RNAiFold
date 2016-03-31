@@ -29,9 +29,12 @@ namespace operations_research {
 		j(_j){
 		parent=-1;
 		level=0;
+		leaves_distance=-1;
+
 		pos_left=0;
 		pos_right=0;
-				
+		try_left=0;
+		try_right=0;
 	}
 	
 	
@@ -71,6 +74,13 @@ namespace operations_research {
 		return;
 	}
 
+	int CPHelix::getLeavesDistance(){
+		return leaves_distance;
+	}
+	void CPHelix::setLeavesDistance(int distance){
+		leaves_distance=distance;
+		return;
+	}
 
 	int CPHelix::getPosLeft(){
 		return pos_left;
@@ -87,6 +97,21 @@ namespace operations_research {
 		return;
 	}
 
+	int CPHelix::getTryLeft(){
+		return try_left;
+	}
+	void CPHelix::setTryLeft(int new_val){
+		try_left=new_val;
+		return;
+	}
+	int CPHelix::getTryRight(){
+		return try_right;
+	}
+	
+	void CPHelix::setTryRight(int new_val){
+		try_right=new_val;
+		return;
+	}
 
 	void CPHelix::addInside(int h){
 		inside.push_back(h);
@@ -307,6 +332,11 @@ namespace operations_research {
 				}
 				stretch=0;	
 			}
+			if(k==j){
+					for(int m=0; m<currentStretch.size();m++){
+						stretchUPs[currentStretch[m]]=stretch;
+					}
+			}
 		}
 		
 		if(nUPs != ups.size()){
@@ -316,15 +346,26 @@ namespace operations_research {
 
 		nUPs=0;
 		for(int l=maxLevel;l>=0;l--){
-			for(int m=maxStretch;m>=0;m--){			
-				for(int k=0;k<ups.size();k++){
-					if(levelUPs[k]==l && stretchUPs[k]==m){
-						orderedUPs.push_back(ups[k]);
-						nUPs++;
+			for(int m=maxStretch;m>=0;m--){	
+				if(l==0 && 	stretchUPs.size()>0 && m == stretchUPs[ups.size()-1]){	
+					for(int k=ups.size()-1;k>=0;k--){
+						if(levelUPs[k]==l && stretchUPs[k]==m){
+							orderedUPs.push_back(ups[k]);
+							nUPs++;
+						}
+					}
+				}
+				else{
+					for(int k=0;k<ups.size();k++){
+						if(levelUPs[k]==l && stretchUPs[k]==m){
+							orderedUPs.push_back(ups[k]);
+							nUPs++;
+						}
 					}
 				}
 			}
 		}		
+
 		if(nUPs != ups.size()){
 			printf ("Error assigning levels\n");
 			exit(0);

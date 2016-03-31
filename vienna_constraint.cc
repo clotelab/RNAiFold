@@ -41,7 +41,6 @@ namespace operations_research {
 			}
 		}
 		if(allBound){
-			int* mfeStr;
 			char seq[n+1];
 			double energy=0;
 
@@ -66,8 +65,8 @@ namespace operations_research {
 //			cin >> a;
 
 
-			mfeStr = v->getBasePairs1Index();
-
+			v->fillBasePairs1Index(mfeStr);
+			
 //			for(int i = 1; i <= size(); ++i) {
 //				cout << structure_[i]<< "\t";
 //			}
@@ -76,33 +75,104 @@ namespace operations_research {
 //				cout << mfeStr[i]<< "\t";
 //			}
 //			cout << endl;
-			
-			for (int i = posLeft_; i <= posRight_; ++i) {
+			bool continueSearch=false;
+						
+//			for (int i = posLeft_; i <= posRight_; ++i) {  // CHECK ONLY POSITIONS INTERNAL HELIX 
+			for (int i = 0; i < size(); ++i) {
 				if (mfeStr[i] != structure_[i]) {
-//					cout << endl << "Fail " << endl << seq<< endl << v->getStructure() << endl << targetStr << endl;
-//					string a;
-//					cin >> a;*/
+					if(!checkSides){
+//						cout << endl << "Fail " << endl << seq<< endl << v->getStructure() << endl << targetStr << endl;
+//						string a;
+//						cin >> a;*/
 
-//					printf("position %d --> %d != %d\n", i,mfeStr[i],structure_[i]);
-					free(mfeStr);
-					solver()->Fail();
-					return;
+//						printf("position %d --> %d != %d\n", i,mfeStr[i],structure_[i]);
+						solver()->Fail();
+						return;						
+					}
+					else{
+						continueSearch=true;
+						break;
+					}
 				}
 			}
 
-// 			cout << endl << "OKOK " << endl << seq<< endl << v->getStructure() << endl << targetStr << endl << "Energy:" << energy <<endl;
-//			string a;
-//			cin >> a;
-			free(mfeStr);
+			if(!continueSearch){
+// 				cout << endl << "OKOK " << endl << seq<< endl << v->getStructure() << endl << targetStr << endl << "Energy:" << energy <<endl;
+//				string a;
+//				cin >> a;
 
-			if(upperMFE_< NO_ENERGY_LIMIT && (float)energy>(float)upperMFE_){
-				solver()->Fail();
-			}
-			else if(lowerMFE_< NO_ENERGY_LIMIT && (float)energy<(float)lowerMFE_){
-				solver()->Fail();
-			}
+				if(upperMFE_< NO_ENERGY_LIMIT && (float)energy>(float)upperMFE_){
+					solver()->Fail();
+				}
+				else if(lowerMFE_< NO_ENERGY_LIMIT && (float)energy<(float)lowerMFE_){
+					solver()->Fail();
+				}
 
-			return;
+				return;
+			}
+			else{
+				string seqSides(nSides,'N');
+				for(int i = 0; i < size(); ++i) {
+					seqSides[i+(varLeft_==NULL? 0: 1)]=ToNucl(vars_[i]->Value());
+				}
+				vector<int64> leftDom; 
+				vector<int64> rightDom; 
+				if(varLeft_!=NULL){
+					for (leftIt_->Init(); leftIt_->Ok(); leftIt_->Next()) {
+						leftDom.push_back(leftIt_->Value());						
+					}
+				}
+				if(varRight_!=NULL){
+					for (rightIt_->Init(); rightIt_->Ok(); rightIt_->Next()) {
+						rightDom.push_back(rightIt_->Value());						
+					}
+				}
+				for(int l = 0; l < (varLeft_==NULL ? 1: leftDom.size()); l++) {
+					if(varLeft_!=NULL){
+						seqSides[0]=ToNucl(leftDom[l]);
+					}
+					for(int r = 0; r < (varRight_==NULL ? 1: rightDom.size()); r++) {
+						if(varRight_!=NULL){
+							seqSides[nSides-1]=ToNucl(rightDom[r]);
+						}
+						vSides->setSequence(seqSides.c_str());
+						if(cutPoint_==-1){
+							energy=vSides->fold();
+						}
+						else{
+							energy=vSides->cofold();
+						}
+
+						vSides->fillBasePairs1Index(mfeStrSides);
+						bool isSolution=false;
+						// Check sides
+						if((varLeft_==NULL || mfeStrSides[1] == -1) && (varRight_==NULL || mfeStrSides[nSides] == -1)){
+							isSolution=true;
+							for (int i = posLeft_; i <= posRight_; ++i) {
+								if (mfeStrSides[i+(varLeft_==NULL ? 0: 1)] != structure_[i]) {
+//									cout << endl << "Fail " << l << " " << r<<endl << seqSides<< endl << vSides->getStructure() << endl << (varLeft_==NULL ? "" : " ") << targetStr << (varRight_==NULL ? "" : " ") << endl;
+//									string a;
+//									cin >> a;*/
+
+//									printf("position %d --> %d != %d\n", i,mfeStrSides[i+(varLeft_==NULL ? 0: 1)],structure_[i]);
+									isSolution=false;
+									break;
+								}
+							}
+						}
+						
+						if(isSolution){
+							if((upperMFE_ == NO_ENERGY_LIMIT || (float)energy<=(float)upperMFE_) && (lowerMFE_== NO_ENERGY_LIMIT || (float)energy>=(float)lowerMFE_)){
+//								cout << endl << "OK " << l << " " << r<<endl << seqSides<< endl << vSides->getStructure() << endl << (varLeft_==NULL ? "" : " ") << targetStr << (varRight_==NULL ? "" : " ") << endl;
+								
+								return;
+							}
+						}
+					}
+				}
+				solver()->Fail();
+				return;
+			}
 		}
 	}
 
@@ -127,7 +197,6 @@ namespace operations_research {
 			}
 		}
 		if(allBound){
-			int* mfeStr;
 			char seq[n+1];
 			double energy=0;
 
@@ -160,7 +229,9 @@ namespace operations_research {
 //			}
 //			cout << endl;
 
-			mfeStr = v->getBasePairs1Index();
+			v->fillBasePairs1Index(mfeStr);
+
+			bool continueSearch=false;
 
 			for (int i = posLeft_; i <= posRight_; ++i) {
 				if (structure_[i] != -2 && mfeStr[i] != structure_[i]) {
@@ -170,25 +241,92 @@ namespace operations_research {
 
 //					printf("position %d --> %d != %d\n", i,mfeStr[i],structure_[i]);
 
-					free(mfeStr);
-					solver()->Fail();
-					return;
+					if(!checkSides){
+						solver()->Fail();
+						return;						
+					}
+					else{
+						continueSearch=true;
+						break;
+					}
 				}
 			}
 
-// 			cout << endl << "OKOK " << endl << seq<< endl << v->getStructure() << endl << targetStr << endl << "Energy:" << energy <<endl;
-//			string a;
-//			cin >> a;
-			free(mfeStr);
+			if(!continueSearch){
+// 				cout << endl << "OKOK " << endl << seq<< endl << v->getStructure() << endl << targetStr << endl << "Energy:" << energy <<endl;
+//				string a;
+//				cin >> a;
+				if(upperMFE_< NO_ENERGY_LIMIT && (float)energy>(float)upperMFE_){
+						solver()->Fail();
+				}
+				else if(lowerMFE_<NO_ENERGY_LIMIT && (float)energy<(float)lowerMFE_){
+						solver()->Fail();
+				}
 
-			if(upperMFE_< NO_ENERGY_LIMIT && (float)energy>(float)upperMFE_){
-					solver()->Fail();
+				return;
 			}
-			else if(lowerMFE_<NO_ENERGY_LIMIT && (float)energy<(float)lowerMFE_){
-					solver()->Fail();
-			}
+			else{
+				string seqSides(nSides,'N');
+				for(int i = 0; i < size(); ++i) {
+					seqSides[i+(varLeft_==NULL? 0: 1)]=ToNucl(vars_[i]->Value());
+				}
+				vector<int64> leftDom; 
+				vector<int64> rightDom; 
+				if(varLeft_!=NULL){
+					for (leftIt_->Init(); leftIt_->Ok(); leftIt_->Next()) {
+						leftDom.push_back(leftIt_->Value());						
+					}
+				}
+				if(varRight_!=NULL){
+					for (rightIt_->Init(); rightIt_->Ok(); rightIt_->Next()) {
+						rightDom.push_back(rightIt_->Value());						
+					}
+				}
+				for(int l = 0; l < (varLeft_==NULL ? 1: leftDom.size()); l++) {
+					if(varLeft_!=NULL){
+						seqSides[0]=ToNucl(leftDom[l]);
+					}
+					for(int r = 0; r < (varRight_==NULL ? 1: rightDom.size()); r++) {
+						if(varRight_!=NULL){
+							seqSides[nSides-1]=ToNucl(rightDom[r]);
+						}
+						vSides->setSequence(seqSides.c_str());
+						if(cutPoint_==-1){
+							energy=vSides->fold();
+						}
+						else{
+							energy=vSides->cofold();
+						}
 
-			return;
+						vSides->fillBasePairs1Index(mfeStrSides);
+						bool isSolution=false;
+						// Check sides
+						if((varLeft_==NULL || mfeStrSides[1] == -1) && (varRight_==NULL || mfeStrSides[nSides] == -1)){
+							isSolution=true;
+							for (int i = posLeft_; i <= posRight_; ++i) {
+								if (structure_[i] != -2 && mfeStrSides[i+(varLeft_==NULL ? 0: 1)] != structure_[i]) {
+				//					cout << endl << "Fail " << l << " " << r<<endl << seqSides<< endl << vSides->getStructure() << endl << (varLeft_==NULL ? "" : " ") << targetStr << (varRight_==NULL ? "" : " ") << endl;
+				//					string a;
+				//					cin >> a;*/
+
+				//					printf("position %d --> %d != %d\n", i,mfeStrSides[i+(varLeft_==NULL ? 0: 1)],structure_[i]);
+									isSolution=false;
+									break;
+								}
+							}
+						}
+						
+						if(isSolution){
+							if((upperMFE_ == NO_ENERGY_LIMIT || (float)energy<=(float)upperMFE_) && (lowerMFE_== NO_ENERGY_LIMIT || (float)energy>=(float)lowerMFE_)){
+								return;
+							}
+						}
+					}
+				}
+				solver()->Fail();
+				return;
+			}
+			
 		}
 	}
 

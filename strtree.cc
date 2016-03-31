@@ -26,7 +26,7 @@ int max_bp_energy = -330;
 
 namespace operations_research {
 	StrTree::~StrTree(){};
-	StrTree::StrTree(int tree_id, int* str_int,int n, std::vector<int> BPO, std::vector<int> BPC, int treeType, int cutPoint) : tree_id_(tree_id) {
+	StrTree::StrTree(int tree_id, int* str_int,int n, std::vector<int> BPO, std::vector<int> BPC, int treeType, int cutPoint, double temp) : tree_id_(tree_id), temp_(temp) {
 		if(treeType==TH_RNAIFOLD){
 			createRNAiFoldHelices(str_int,n,BPO,BPC,false, cutPoint);
 		}
@@ -135,6 +135,16 @@ namespace operations_research {
 				}			
 			}
 		}
+		else{
+			for(i=helixId-1;i>0;i--){
+				if(helices[i]->getI()>1 &&  (str_int[helices[i]->getI()-1]==-1) && (cutPoint!=helices[i]->getI()-1)){
+					helices[i]->setTryLeft(1);
+				}
+				if(helices[i]->getJ()<n &&  (str_int[helices[i]->getJ()+1]==-1) && (cutPoint!=helices[i]->getJ()+1)){
+					helices[i]->setTryRight(1);
+				}			
+			}
+		}
 
 
 		for(i=0; i<helices.size(); i++){
@@ -142,7 +152,7 @@ namespace operations_research {
 			helices[i]->setPositionIndexAndType(str_int, BPO,BPC);
 			// helices[i]->toString();
 		}
-
+		initLeavesDistance();
 		
 		//*********************** POST-PROCESS ******************************//
 		// Post-processing for fusion helixes, find helices with pattern (.XXXXXX) or (XXXXXX.) or 
@@ -207,7 +217,11 @@ namespace operations_research {
 		tree_id_=tree_id;
 		return;
 	}
-
+	
+	double StrTree::getTemp(){
+		return temp_;
+	}
+	
 	std::vector<CPHelix* > StrTree::getHelices(){
 		return helices;
 	}
@@ -218,6 +232,21 @@ namespace operations_research {
 		sort(sortedHelices.begin(), sortedHelices.end(), compByLevel);
 		return sortedHelices;
 	}
+
+	void StrTree::initLeavesDistance(){
+		for(int i=helices.size()-1;i>=0;i--){
+			if(helices[i]->getInside().size() == 0){
+				helices[i]->setLeavesDistance(0);
+				int tmpDistance=0;
+				int tmpHelix = helices[i]->getParent();
+				while (tmpHelix != -1 && (helices[tmpHelix]->getLeavesDistance() == -1 || helices[tmpHelix]->getLeavesDistance() > tmpDistance+1)){
+					tmpDistance+=1;
+					helices[tmpHelix]->setLeavesDistance(tmpDistance);					
+					tmpHelix = helices[tmpHelix]->getParent();
+				}
+			}
+		}
+	}	
 
 	int StrTree::consecutive(int aX, int aY, int bX, int bY){
 		int i,j;
@@ -236,7 +265,7 @@ namespace operations_research {
 			for(int j=0;j<getHelices()[i]->getLevel();j++){
 				printf("  ");
 			}
-			printf("%d-%d\n",getHelices()[i]->getI(),getHelices()[i]->getJ());
+			printf("%d-%d %d\n",getHelices()[i]->getI(),getHelices()[i]->getJ(), getHelices()[i]->getLeavesDistance());
 			//getHelices()[i]->toString();
 		}
 	}

@@ -38,7 +38,7 @@ class ViennaConstraint : public Constraint {
 	public:
 
 	// This constructor does not take any ownership on its arguments.
-	ViennaConstraint(Solver* const s, const std::vector<IntVar*>& vars, const std::vector<int64>& structure, int dangles, std::string rnaLib, std::string energyModel, double foldTemp, int cutPoint, int posLeft, int posRight, double upperMFE, double lowerMFE) : Constraint(s), vars_(vars), structure_(structure), cutPoint_(cutPoint), posLeft_(posLeft), posRight_(posRight), upperMFE_((float)upperMFE), lowerMFE_((float)lowerMFE) {
+	ViennaConstraint(Solver* const s, const std::vector<IntVar*>& vars, const std::vector<int64>& structure, int dangles, std::string rnaLib, std::string energyModel, double foldTemp, int cutPoint, int posLeft, int posRight, const IntVar* varLeft,const IntVar* varRight, double upperMFE, double lowerMFE) : Constraint(s), vars_(vars), structure_(structure), cutPoint_(cutPoint), posLeft_(posLeft), posRight_(posRight), varLeft_(varLeft), varRight_(varRight), upperMFE_((float)upperMFE), lowerMFE_((float)lowerMFE) {
 		int i;
 		n=size();
 		v = newRNAplugin(rnaLib,n,dangles);
@@ -60,6 +60,31 @@ class ViennaConstraint : public Constraint {
 			}
 		}  
 		targetStr[n]='\0';
+		mfeStr = (int *) malloc(sizeof(int)*(n+1));  
+		
+		// Initialize variables for checking sides
+		if(varLeft_!= NULL  || varRight_!= NULL){
+			checkSides= 1;
+			nSides  = size()+(varLeft_==NULL? 0: 1)+(varRight_==NULL? 0: 1);
+			vSides = newRNAplugin(rnaLib,nSides,dangles);
+			vSides->setEnergyModel(energyModel);
+			vSides->setTemperature(foldTemp);
+			mfeStrSides = (int *) malloc(sizeof(int)*(nSides+1));  
+			if(cutPoint!= -1){
+				vSides->setCutPoint(cutPoint_+(varLeft_==NULL? 0: 1));
+			}
+			if(varLeft_!=NULL){
+				leftIt_ = varLeft_->MakeDomainIterator(true);
+			}
+			if(varRight_!=NULL){
+				rightIt_ = varRight_->MakeDomainIterator(true);
+			}
+			
+		}
+		else{
+			checkSides= 0;
+		}	
+		
 /*		// TIME FOR RESTART
 		nRestarts=0;
 		time(&timeLastFail);*/
@@ -95,6 +120,7 @@ class ViennaConstraint : public Constraint {
 	protected:
 		std::vector<IntVar*> vars_;
 		const std::vector<int64> structure_;
+		int* mfeStr;
 		int cutPoint_;
 		int posLeft_;
 		int posRight_;
@@ -104,6 +130,18 @@ class ViennaConstraint : public Constraint {
 		char* targetStr;
 		double upperMFE_;
 		double lowerMFE_;
+		
+		//Variables for checking sides
+		int nSides;
+		int* mfeStrSides;
+		int checkSides;
+		const IntVar* varLeft_;
+		const IntVar* varRight_;
+		IntVarIterator* leftIt_;
+		IntVarIterator* rightIt_;
+		RNAPlugin* vSides;
+		
+		
 /*		// TIME FOR RESTART
 		int nRestarts;
 		time_t timeLastFail;*/
@@ -112,7 +150,7 @@ class ViennaConstraint : public Constraint {
 
 class ViennaConstraintUndet : public ViennaConstraint {
 	public:
-		ViennaConstraintUndet(Solver* const s, const std::vector<IntVar*>& vars, const std::vector<int64>& structure, int dangles, std::string rnaLib, std::string energyModel, double foldTemp, int cutPoint, int posLeft, int posRight, double upperMFE, double lowerMFE) : ViennaConstraint(s,vars,structure,dangles,rnaLib,energyModel,foldTemp,cutPoint, posLeft, posRight,upperMFE, lowerMFE) {}
+		ViennaConstraintUndet(Solver* const s, const std::vector<IntVar*>& vars, const std::vector<int64>& structure, int dangles, std::string rnaLib, std::string energyModel, double foldTemp, int cutPoint, int posLeft, int posRight, const IntVar* varLeft,const IntVar* varRight, double upperMFE, double lowerMFE) : ViennaConstraint(s,vars,structure,dangles,rnaLib,energyModel,foldTemp,cutPoint, posLeft, posRight, varLeft, varRight, upperMFE, lowerMFE) {}
 		// This is the main propagation method.
 		//
 		// It scans all variables are bound, storing those variables with more than one element in its domain
@@ -129,7 +167,7 @@ class ViennaConstraintUndet : public ViennaConstraint {
 
 class ViennaConstraintDet : public ViennaConstraint {
 	public:
-		ViennaConstraintDet(Solver* const s, const std::vector<IntVar*>& vars, const std::vector<int64>& structure, int dangles, std::string rnaLib, std::string energyModel, double foldTemp, int cutPoint, int posLeft, int posRight, double upperMFE, double lowerMFE) : ViennaConstraint(s,vars,structure,dangles,rnaLib,energyModel,foldTemp,cutPoint, posLeft, posRight,upperMFE, lowerMFE) {}	
+		ViennaConstraintDet(Solver* const s, const std::vector<IntVar*>& vars, const std::vector<int64>& structure, int dangles, std::string rnaLib, std::string energyModel, double foldTemp, int cutPoint, int posLeft, int posRight, const IntVar* varLeft,const IntVar* varRight, double upperMFE, double lowerMFE) : ViennaConstraint(s,vars,structure,dangles,rnaLib,energyModel,foldTemp,cutPoint, posLeft, posRight, varLeft, varRight, upperMFE, lowerMFE) {}
 		// This is the main propagation method.
 		//
 		// It scans all variables are bound, storing those variables with more than one element in its domain

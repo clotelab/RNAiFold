@@ -181,7 +181,37 @@ namespace operations_research {
 				order_[sortedHelices[i]->getId()]=i;
 			}
 		}
-		else{
+		else if (strategy == HH_NO_OVERLAP){
+			std::vector<CPHelix* > sortedHelices;
+
+			/* // Heuristic -1 Not used
+			int countHelices=0;
+			for(int i=0;i<str_trees_->size();i++){
+				std::vector<CPHelix* > tmpHelices = str_trees_->at(i)->getSortedHelices();
+				sortedHelices.insert(sortedHelices.end(), tmpHelices.begin(), tmpHelices.end());
+				for(int j=0;j<str_trees_->at(i)->getHelices().size();j++){
+					order_[sortedHelices[j]->getId()+countHelices]=j+countHelices;
+				}
+				countHelices = str_trees_->at(i)->getHelices().size();
+			}
+
+			// End Heuristic -1 */
+			//Heuristic 0			
+			std::vector<int> y;
+			for(int i=0;i<nHelices;i++){
+				y.push_back(i);
+				sortedHelices.push_back(getHelix(i));
+			}
+			//std::sort(y.begin(), y.end(), HelixCompare(sortedHelices));
+			std::sort(y.begin(), y.end(), LeavesDistanceCompare(sortedHelices));
+			
+
+			for(int i=0;i<nHelices;i++){
+				order_[y[i]]= i;
+			}
+			// End Heuristic 0
+		}
+		else {
 			vector<vector<int> > includes(nHelices, std::vector<int>(nHelices, 0));
 			vector<vector<int> > overlap(nHelices, std::vector<int>(nHelices, 0));
 			vector<int>  degree(nHelices, 0);
@@ -190,6 +220,15 @@ namespace operations_research {
 					if(helixIndex[i]!=helixIndex[j]){
 						CPHelix* helix1 = getHelix(i);
 						CPHelix* helix2 = getHelix(j);
+						if(helix2->getI()==helix1->getI() && helix2->getJ()==helix1->getJ()){
+							if(str_trees_->at(helixIndex[i])->getTemp() > str_trees_->at(helixIndex[j])->getTemp()){
+								includes[j][i]=1;
+							}
+							else{
+								includes[i][j]=1;
+							}
+						}
+
 						if((helix1->getI()==helix2->getJ() || helix1->getJ()==helix2->getI()) || // Helixes ovelap at last or first position
 						   (helix1->getI()>helix2->getI() && helix1->getI()<helix2->getJ() && helix1->getJ()>helix2->getJ()) ||  // Start of helix A included in helix B
 						   (helix1->getJ()>helix2->getI() && helix1->getJ()<helix2->getJ() && helix1->getI()<helix2->getI()) ||   // End of helix A included in helix B
@@ -203,6 +242,8 @@ namespace operations_research {
 								   (helix2->getI()<=helix1->getI() && helix2->getJ()>helix1->getJ())){
 								includes[j][i]=1;						
 							}
+							
+							
 							switch(strategy){
 								// 1 If helices overlap at any position
 								case HH_OVERLAP_SIMPLE:
@@ -214,7 +255,7 @@ namespace operations_research {
 									overlap[i][j]=helix1->getBPintersect(helix2->getBPpositions());
 									overlap[j][i]=overlap[i][j];
 									break;
-								// Overlap value is the number of overlapping positions, no matter if they are base pair ou unpaired positions
+								// Overlap value is the number of overlapping positions, no matter if they are base pair or unpaired positions
 								case HH_OVERLAP_POSITIONS:
 									overlap[i][j]=helix1->getPositionsIntersect(helix2->getPositions());
 									overlap[j][i]=overlap[i][j];

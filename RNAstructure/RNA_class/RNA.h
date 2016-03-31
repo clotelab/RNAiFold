@@ -18,12 +18,14 @@
 #ifdef _WINDOWS_GUI
 #include "../RNAstructure_windows_interface/TProgressDialog.h"
 #else
+
 #ifdef _JAVA_GUI
-#include "../RNAstructure_java_interface/SWIG/TProgressDialog.h"
+#include "../java_interface/SWIG/TProgressDialog.h"
 #else
 #include "../src/TProgressDialog.h"
-#endif
-#endif
+#endif //_JAVA_GUI
+
+#endif //_WINDOWS_GUI
 
 
 //! RNA Class.
@@ -122,9 +124,6 @@ class RNA: public Thermodynamics {
 		//!\return A pointer to a c string that provides an error message.
 		char* GetErrorMessage(const int error);
 
-		//!	Sets the chemical modifier type for the data contained  in the SHAPE constraints file. Can be SHAPE, DMS, or CMCT.	
-		//!\param modifier is either SHAPE, DMS, or CMCT, depending on the chemical modifier.
-		void SetModifier(std::string modifier);
 
 		//!	Return error messages based on code from GetErrorCode and other error codes.		
 
@@ -133,8 +132,10 @@ class RNA: public Thermodynamics {
 		//!\param error is the integer error code provided by GetErrorCode() or from other functions that return integer error codes.
 		//!\return A string that provides an error message.
 		std::string GetErrorMessageString(const int error);
-		
-									
+
+		//!	Reset the RNA's internal error code to 0
+		//!	This should be invoked after the error condition is handled
+		void ResetError();
 		//*****************************************************	
 		//Functions that manually change structural information:
 		//******************************************************
@@ -152,6 +153,8 @@ class RNA: public Thermodynamics {
 		//!\param j in an integer for the position of the second nucleotide in the pair.
 		//!\param structurenumber is the structure that has the pair.  This defaults to 1.
 		//!\return An integer that indicates an error code that can be parsed by GetErrorMessage() or GetErrorMessageString(), 0 = no error.
+
+
 		int SpecifyPair(const int i, const int j, const int structurenumber = 1);
 		
 		//!Remove all the current base pairs in a specified structure.
@@ -219,14 +222,14 @@ class RNA: public Thermodynamics {
 		//!		thermodynamic parameters have not been read and therefore they will be read by this function call.  The 
 		//!		parameter files should be located in the directory specified by the environment variable $DATAPATH of the pwd.
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
-		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.
-		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.
-		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).
+		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.  The default is 20.
+		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.  The default is 20.
+		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).  The defaults is 5, but this should be customized based on sequence length.
 		//!	\param savefile is c string containing a file path and name for a savefile (.sav)that can be used to generate energy dot plots and to refold the secondary structure using different suboptimal structure parameters.  The default is "", which results in no save file written.
 		//!	\param maxinternalloopsize is the maximum number of unpaired nucleotides in bulge and internal loops.  This is used to accelerate the prediction speed.  The default is 30.
 		//! \param mfeonly is a bool that indicates whether only the minimum free energy structure will be generated.  This saves half the calculation time, but no save file can be generated.  Default is false.
 		//! \return An int that indicates an error code (0 = no error, 5 = error reading thermodynamic parameter files, 14 = traceback error).
-		int FoldSingleStrand(const float percent, const int maximumstructures, const int window, const char savefile[]="", const int maxinternalloopsize = 30, bool mfeonly=false);
+		int FoldSingleStrand(const float percent=20, const int maximumstructures=20, const int window=5, const char savefile[]="", const int maxinternalloopsize = 30, bool mfeonly=false, bool simple_iloops = true);
 
 
 		//! Predict the lowest free energy secondary structure and generate all suboptimal structures.
@@ -237,10 +240,10 @@ class RNA: public Thermodynamics {
 		//!		parameter files should be located in the directory specified by the environment variable $DATAPATH of the pwd.
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
 		//! Two controls are available for limiting the number of structures, the maximum % difference in energy (percent) and the maximum absolute change in energy (deltaG).  The smaller of the two will be used as the limit.
-		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.
-		//!	\param deltaG is the maximum difference in free energy change above the lowest free energy structure (in kcal/mol).
+		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.  The default is 5.
+		//!	\param deltaG is the maximum difference in free energy change above the lowest free energy structure (in kcal/mol).  The defaults is 0.6 kcal/mol.
 		//! \return An int that indicates an error code (0 = no error, non-zero = error).
-		int GenerateAllSuboptimalStructures(const float percent, const double deltaG);
+		int GenerateAllSuboptimalStructures(const float percent=5, const double deltaG=0.6);
 
 
 		//! Predict the structure with maximum expected accuracy and suboptimal structures.
@@ -250,12 +253,12 @@ class RNA: public Thermodynamics {
 		//! This function requires partition function data from either a previous partition function calculations or
 		//!		from having read a partition function save file during construction of the class.
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
-		//!	\param maxPercent is the maximum percent difference is score in generating suboptimal structures.
-		//!	\param maxStructures is the maximum number of suboptimal structures to generate.
-		//! \param window is the window parameter, where a higher value generates suboptimal structures that are more different from each other.
+		//!	\param maxPercent is the maximum percent difference is score in generating suboptimal structures.  The default is 20.
+		//!	\param maxStructures is the maximum number of suboptimal structures to generate.  The default is 20.
+		//! \param window is the window parameter, where a higher value generates suboptimal structures that are more different from each other.  The default is 1.
 		//! \param gamma is the weight given to base pairs
 		//! \return An int that indicates an error code (0 = no error, non-zero = error). 
-		int MaximizeExpectedAccuracy(const double maxPercent, const int maxStructures, const int window, const double gamma=1.0);
+		int MaximizeExpectedAccuracy(const double maxPercent=20, const int maxStructures=20, const int window=1, const double gamma=1.0);
 
 		//!Predict the partition function for a sequence.
 
@@ -311,21 +314,21 @@ class RNA: public Thermodynamics {
 		//! The step of predicting structures from the save file is rapid, so this is laregely a method to quickly generate a different set of suboptimal structures.
 		//! Refolding can only be performed if the RNA constructor was called with a save file name.  (That is, you cannot call this after calling fold single strand, without loading the data from disk with a new instance of RNA.  This is for historical reasons.)
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
-		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.
-		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.
-		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).
+		//!	\param percent is the maximum % difference in free energy in suboptimal structures from the lowest free energy structure.  The default is 20.
+		//!	\param maximumstructures is the maximum number of suboptimal structures to generate.  The default is 20.
+		//!	\param window is a parameter that specifies how different the suboptimal structures should be from each other (0=no restriction and larger integers require structures to be more different).  The default is 5.
 		//! \return An int that indicates an error code (0 = no error, 5 = error reading thermodynamic parameter files, 14 = traceback error).
-		int ReFoldSingleStrand(const float percent, const int maximumstructures, const int window);
+		int ReFoldSingleStrand(const float percent=20, const int maximumstructures=20, const int window=5);
 
 		//! Sample structures from the Boltzman ensemable.
 
 		//! This function requires partition function data from either a previous partition function calculations or
 		//!		from having read a partition function save file during construction of the class.
 		//!	In case of error, the function returns a non-zero that can be parsed by GetErrorMessage() or GetErrorMessageString().
-		//!	\param structures is the number of structures to be sampled.
+		//!	\param structures is the number of structures to be sampled.  The default is 1000.
 		//!	\param seed is an integer that seeds the random number generator that is required for sampling, which defaults to 1.
 		//! \return An int that indicates an error code (0 = no error, non-zero = error).
-		int Stochastic(const int structures, const int seed=1);
+		int Stochastic(const int structures=1000, const int seed=1);
 		
 
 		//********************************************************************************

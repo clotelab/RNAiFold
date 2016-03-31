@@ -6,7 +6,7 @@
 // this structure contains a stack of data, used by functions that
 // analyze a structure piecewise
 struct stackstruct {
-	int stk[51][4],sp;
+	int stk[101][4],sp;
 };
 
 //push info onto the stack

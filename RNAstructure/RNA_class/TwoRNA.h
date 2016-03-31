@@ -115,6 +115,9 @@ class TwoRNA  {
 		//!\return A string that provides an error message.
 		std::string GetErrorMessageString(const int error);
 
+		//!	Reset the underlying RNA objects internal error code, after an error is handled
+        void ResetError();
+
 		//******************************************************************
 		//Functions that access underlying classes:
 		//******************************************************************

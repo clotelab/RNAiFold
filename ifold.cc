@@ -373,10 +373,10 @@ namespace operations_research {
 
 		// Create tree of helices
 		if(includeDangles){
-			str_tree.push_back(new StrTree(strIndex,str_int.at(strIndex),n,BPO[strIndex],BPC[strIndex],TH_RNAIFOLD_DANGLES, cutPoint));
+			str_tree.push_back(new StrTree(strIndex,str_int.at(strIndex),n,BPO[strIndex],BPC[strIndex],TH_RNAIFOLD_DANGLES, cutPoint, foldTemp));
 		}
 		else{
-			str_tree.push_back(new StrTree(strIndex,str_int.at(strIndex),n,BPO[strIndex],BPC[strIndex],TH_RNAIFOLD, cutPoint));
+			str_tree.push_back(new StrTree(strIndex,str_int.at(strIndex),n,BPO[strIndex],BPC[strIndex],TH_RNAIFOLD, cutPoint, foldTemp));
 		}
 		if(showHelices){
 			str_tree[str_tree.size()-1]->showTree();
@@ -420,7 +420,9 @@ namespace operations_research {
 				if(MFEstructure){
 					solver->AddConstraint(solver->RevAlloc(new ViennaConstraintDet(solver, std::vector<IntVar*>(vSeq.begin () + str_tree.at(strIndex)->getHelices()[i]->getI(), 
 																										  vSeq.begin () + str_tree.at(strIndex)->getHelices()[i]->getJ()+1),
-																					 structure,dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, str_tree.at(strIndex)->getHelices()[i]->getPosLeft()+1, str_tree.at(strIndex)->getHelices()[i]->getJ()-str_tree.at(strIndex)->getHelices()[i]->getI()-str_tree.at(strIndex)->getHelices()[i]->getPosRight()+1,maxEnergy, minEnergy)));
+																					 structure,dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, str_tree.at(strIndex)->getHelices()[i]->getPosLeft()+1, str_tree.at(strIndex)->getHelices()[i]->getJ()-str_tree.at(strIndex)->getHelices()[i]->getI()-str_tree.at(strIndex)->getHelices()[i]->getPosRight()+1,
+																					 str_tree.at(strIndex)->getHelices()[i]->getTryLeft() == 1 ? vSeq.at(str_tree.at(strIndex)->getHelices()[i]->getI()-1) : NULL, str_tree.at(strIndex)->getHelices()[i]->getTryRight() == 1 ? vSeq.at(str_tree.at(strIndex)->getHelices()[i]->getJ()+1) : NULL,
+																					 maxEnergy, minEnergy)));
 				}
 				else{
 					if(minEnergy != NO_ENERGY_LIMIT || maxEnergy != NO_ENERGY_LIMIT){
@@ -444,7 +446,9 @@ namespace operations_research {
 				if(MFEstructure){					
 					solver->AddConstraint(solver->RevAlloc(new ViennaConstraintUndet(solver, std::vector<IntVar*>(vSeq.begin () + str_tree.at(strIndex)->getHelices()[i]->getI(), 
 																										  vSeq.begin () + str_tree.at(strIndex)->getHelices()[i]->getJ()+1),
-																					 structure,dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, str_tree.at(strIndex)->getHelices()[i]->getPosLeft()+1, str_tree.at(strIndex)->getHelices()[i]->getJ()-str_tree.at(strIndex)->getHelices()[i]->getI()-str_tree.at(strIndex)->getHelices()[i]->getPosRight()+1,maxEnergy, minEnergy)));
+																					 structure,dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, str_tree.at(strIndex)->getHelices()[i]->getPosLeft()+1, str_tree.at(strIndex)->getHelices()[i]->getJ()-str_tree.at(strIndex)->getHelices()[i]->getI()-str_tree.at(strIndex)->getHelices()[i]->getPosRight()+1,
+																					 str_tree.at(strIndex)->getHelices()[i]->getTryLeft() == 1 ? vSeq.at(str_tree.at(strIndex)->getHelices()[i]->getI()-1) : NULL, str_tree.at(strIndex)->getHelices()[i]->getTryRight() == 1 ? vSeq.at(str_tree.at(strIndex)->getHelices()[i]->getJ()+1) : NULL,
+																					 maxEnergy, minEnergy)));
 				}
 				else{
 					if(minEnergy != NO_ENERGY_LIMIT || maxEnergy != NO_ENERGY_LIMIT){
@@ -521,12 +525,12 @@ namespace operations_research {
 					if(localCstrs[i].hasUndet()){
 						solver->AddConstraint(solver->RevAlloc(new ViennaConstraintUndet(solver, std::vector<IntVar*>(vSeq.begin () + localCstrs[i].getStartPos(), 
 																											  vSeq.begin () + localCstrs[i].getStartPos() + localCstrs[i].getStructureStr().length()),
-																						 localCstrs[i].getStructureArr(),dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, 1, localCstrs[i].getStructureStr().length(),maxEnergy, minEnergy)));
+																						 localCstrs[i].getStructureArr(),dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, 1, localCstrs[i].getStructureStr().length(),NULL,NULL,maxEnergy, minEnergy)));
 					}
 					else{
 						solver->AddConstraint(solver->RevAlloc(new ViennaConstraintDet(solver, std::vector<IntVar*>(vSeq.begin () + localCstrs[i].getStartPos(), 
 																											  vSeq.begin () + localCstrs[i].getStartPos() + localCstrs[i].getStructureStr().length()),
-																						 localCstrs[i].getStructureArr(),dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, 1, localCstrs[i].getStructureStr().length(),maxEnergy, minEnergy)));
+																						 localCstrs[i].getStructureArr(),dangles_,rnaLib_,energyModel_,foldTemp, strCutPoint, 1, localCstrs[i].getStructureStr().length(),NULL,NULL,maxEnergy, minEnergy)));
 					}
 				}
 				// If MFE constraint is inactive energy constraint is independent
@@ -559,13 +563,16 @@ namespace operations_research {
 //			cout << "\t" <<order[i];
 //		}
 //		cout << endl;
+//		string a;
+//		cin >> a;
+
 		vector<vector<int> > BPtypes = tree_group->optimizeValueHeuristic(n,BPO,BPC,str_int, trgFoldTemps);
 		vector<vector<int> > UPtypes = tree_group->optimizeUPHeuristic(n,BPO,BPC,str_int);
 
 
-		if(BPtypes.size()>1){
-			varHeuristic = SH_MULTI_STR;
-		}
+//		if(BPtypes.size()>1){
+//			varHeuristic = SH_MULTI_STR;
+//		}
 
 		upthreshold_=upthreshold;
 		bpthreshold_=bpthreshold;
@@ -602,15 +609,6 @@ namespace operations_research {
 						var_str.push_back(tree_group->getStrId(i));
 					}
 
-					vector<int> cbps = tree_group->getHelix(i)->getClosingBPs();
-					//Add closing base pairs
-					for(int j=cbps.size()-1; j>=0;j--){
-						vars.push_back(vBPs.at(tree_group->getStrId(i))[cbps[j]]);
-						var_types.push_back(randomAssignment != 0 ? VH_RANDOM : VH_BP);	
-						var_str.push_back(tree_group->getStrId(i));
-					}
-
-
 					vector<int> ups = tree_group->getHelix(i)->getUPs();
 					//Add unpaired positions
 					for(int j=0; j<ups.size();j++){
@@ -620,6 +618,17 @@ namespace operations_research {
 						var_str.push_back(tree_group->getStrId(i));
 						
 					}
+
+
+					vector<int> cbps = tree_group->getHelix(i)->getClosingBPs();
+					//Add closing base pairs
+					for(int j=cbps.size()-1; j>=0;j--){
+						vars.push_back(vBPs.at(tree_group->getStrId(i))[cbps[j]]);
+						var_types.push_back(randomAssignment != 0 ? VH_RANDOM : VH_BP);	
+						var_str.push_back(tree_group->getStrId(i));
+					}
+
+
 
 /*
 					vector<int> positions=tree_group->getHelix(i)->getPositions();
@@ -653,15 +662,34 @@ namespace operations_research {
 					//Add base pairing positions from inside to outside
 					for(int j=bps.size()-1; j>=0;j--){
 						vars.push_back(vBPs.at(tree_group->getStrId(i))[bps[j]]);
-						var_types.push_back(randomAssignment != 0 ? VH_RANDOM : BPtypes.at(tree_group->getStrId(i))[bps[j]]);
+						if(BPtypes.at(tree_group->getStrId(i))[bps[j]] == VH_MULTI_BP_1){
+							if(tree_group->getHelix(i)->isStack(bps[j])){
+								var_types.push_back(randomAssignment != 0 ? VH_RANDOM : VH_BP_STACK);
+							}
+							else{
+								var_types.push_back(randomAssignment != 0 ? VH_RANDOM : VH_BP);	
+							}
+						}
+						else  if(BPtypes.at(tree_group->getStrId(i))[bps[j]] == VH_MULTI_BP_0){
+							if(tree_group->getHelix(i)->isStack(bps[j])){
+								var_types.push_back(randomAssignment != 0 ? VH_RANDOM : VH_BP_STACK_INV);
+							}
+							else{
+								var_types.push_back(randomAssignment != 0 ? VH_RANDOM : VH_MULTI_BP_0);	
+							}
+						}
+						else{
+							var_types.push_back(randomAssignment != 0 ? VH_RANDOM : BPtypes.at(tree_group->getStrId(i))[bps[j]]);
+						}
 						var_str.push_back(tree_group->getStrId(i));
 					}
 
 
 
 					vector<int> ups = tree_group->getHelix(i)->getUPs();
+					int danglePos = tree_group->getHelix(i)->getPosLeft()+tree_group->getHelix(i)->getPosRight();
 					//Add unpaired positions
-					for(int j=0; j<ups.size();j++){
+					for(int j=0; j<ups.size()-danglePos;j++){
 						vars.push_back(vSeq[ups[j]]);
 //						cout << "Adding vSeq["<<ups[j]<<"]"<< endl;
 						var_types.push_back(randomAssignment != 0 ?	VH_RANDOM : UPtypes.at(tree_group->getStrId(i))[ups[j]]);
@@ -669,13 +697,28 @@ namespace operations_research {
 						
 					}
 
+					//Add dangles
+					for(int j=ups.size()-danglePos; j<ups.size();j++){
+						vars.push_back(vSeq[ups[j]]);
+//						cout << "Adding dangle vSeq["<<ups[j]<<"]"<< endl;
+						// If assigning the three prime
+						if(danglePos == 2 && j==ups.size()-1){
+							var_types.push_back(randomAssignment != 0 ?	VH_RANDOM : VH_THREEP_UP);
+						}
+						else{
+							var_types.push_back(randomAssignment != 0 ?	VH_RANDOM : UPtypes.at(tree_group->getStrId(i))[ups[j]]);
+						}
+						var_str.push_back(tree_group->getStrId(i));
+						
+					}
 					vector<int> cbps = tree_group->getHelix(i)->getClosingBPs();
 					//Add closing base pairs
 					for(int j=cbps.size()-1; j>=0;j--){
 						vars.push_back(vBPs.at(tree_group->getStrId(i))[cbps[j]]);
-						var_types.push_back(randomAssignment != 0 ? VH_RANDOM : BPtypes.at(tree_group->getStrId(i))[cbps[j]]);
+						var_types.push_back(randomAssignment != 0 ? VH_RANDOM : VH_MULTI_BP_1);
 						var_str.push_back(tree_group->getStrId(i));
 					}
+
 				}
 			}		
 			break;

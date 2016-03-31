@@ -51,7 +51,7 @@ DEFINE_string(temp, DEFAULT_TEMP, "Target folding temperature(s)");
 
 
 DEFINE_int32(IncludeDangles, 1, "Include dangling positions when creating helices"); 
-DEFINE_int32(HelixHeuristic, HH_OVERLAP_BP, "Helix ordering heuristic for the search 1-Simple overlap 2-Base pair overlap 3-Total overlap (default 2)");
+DEFINE_int32(HelixHeuristic, HH_OVERLAP_BP, "Helix ordering heuristic for the search 0-No overlap, 1-Simple overlap 2-Base pair overlap 3-Total overlap (default 2)");
 DEFINE_int32(VarHeuristic, SH_BOTTOM_TO_TOP, "Variable heuristic 1-Helices bottom to top 2-In to out ");
 DEFINE_int32(UPthreshold, DEFAULT_UP_THRESHOLD, "Probablility of selecting the next UP assignment in value heuristic");
 DEFINE_int32(BPthreshold, DEFAULT_BP_THRESHOLD, "Probablility of selecting the next BP assignment in value heuristic");
@@ -108,10 +108,12 @@ using namespace std;
 /* BEGIN OR-TOOLS FUNCTION */
 
 namespace operations_research {
-
 	void IfoldCp(std::vector<int*> strs_int, std::vector<int*> int_strs_undet, int n, int maxSolutions, int64 timeLimit, char* sequence, vector<AAConstraint*> aaConstraints, int helixHeuristic, int varHeuristic, int randomAssignment, int upthreshold, int bpthreshold, int includeDangles, int dangles, std::string rnaLib, std::string energyModel,std::vector<double> foldTemps, double minGCcont, double maxGCcont, int minAU, int maxAU, int minGC, int maxGC, int minGU, int maxGU,std::vector<std::tuple<int,int,int>> listMinA,std::vector<std::tuple<int,int,int>> listMaxA,std::vector<std::tuple<int,int,int>> listMinC,std::vector<std::tuple<int,int,int>> listMaxC,std::vector<std::tuple<int,int,int>> listMinG,std::vector<std::tuple<int,int,int>> listMaxG,std::vector<std::tuple<int,int,int>> listMinU,std::vector<std::tuple<int,int,int>> listMaxU,std::vector<std::tuple<int,int,int>> listConsA,std::vector<std::tuple<int,int,int>> listConsC,std::vector<std::tuple<int,int,int>> listConsG,std::vector<std::tuple<int,int,int>> listConsU, int MFEstructure, int minimizeMFE, int minimizeEnsDef, int* comp_str_int, vector<pair<int,int>> vIncompBP, int showHelices, std::vector<HelixCstr> helixCstrs, std::vector<LocalCstr> localCstrs, int LNS, int LNSunchangedRestarts, int LNSrestartTime, int showMeasures, int cutPoint){
 		int i;
 
+		// Sort structures by decreasing temperature		
+		orderStructuresByTemp(&strs_int, &int_strs_undet, &foldTemps);
+		
 		// Constraint programming engine
 		Solver solver("Inverse Folding CP");
 		clock_t start_init = clock();
@@ -900,7 +902,7 @@ bool checkInputParameters(std::vector<std::string> structures, int maxSolutions,
 	}
 
 	//  HELIX HEURISTIC
-	if(helixHeuristic<1 || helixHeuristic > 4){
+	if(helixHeuristic<0 || helixHeuristic > 4){
 		errorMessage += "Invalid helix heuristic. Allowed values(1 - SIMPLE_OVERLAP, 2 - BASE_PAIR_OVERLAP, 3 - TOTAL_OVERLAP, 2 - BASE_PAIR_PERCENT_OVERLAP\n";
 		retVal = false;		
 	}
@@ -1377,5 +1379,46 @@ bool readDatafromFile(std::string inputFile, std::string* strs, int* maxSolution
 	}
 	infile.close();
 	return true;
+}
+
+struct TreeTempCompare{
+	const std::vector<double>& target;
+
+	TreeTempCompare(const std::vector<double>& target): target(target) {}
+
+	bool operator()(int a, int b) const { return target[a] > target[b]; }
+};
+
+void orderStructuresByTemp(std::vector<int*> *strs_int, std::vector<int*> *int_strs_undet, std::vector<double> *foldTemps){
+	// Sort structures by decreasing temperature
+	if(strs_int->size()>1){
+		std::vector<int> treeOrder;
+		std::vector<int*> strs_int_tmp(strs_int->size());
+		std::vector<int*> int_strs_undet_tmp(int_strs_undet->size());
+		std::vector<double> foldTemps_tmp(foldTemps->size());
+
+		for(int i=0;i<strs_int->size();i++){
+			treeOrder.push_back(i);
+			strs_int_tmp[i]= strs_int->at(i);
+			if(int_strs_undet->size()> i){
+				int_strs_undet_tmp[i]= int_strs_undet->at(i);
+			}
+			foldTemps_tmp[i]= foldTemps->at(i);
+			
+		}
+		std::sort(treeOrder.begin(), treeOrder.end(), TreeTempCompare(*foldTemps));		
+
+		// Order temperatures and structures
+		
+		for(int i=0;i<strs_int->size();i++){
+			strs_int->at(i) = strs_int_tmp[treeOrder[i]];
+			if(int_strs_undet->size()> i){
+				int_strs_undet->at(i) = int_strs_undet_tmp[treeOrder[i]];
+			}
+			foldTemps->at(i) = foldTemps_tmp[treeOrder[i]];
+			
+		}
+	}
+
 }
 

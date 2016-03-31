@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <map>
+#include <algorithm>
 
 #ifndef _VALUE_HEURISTIC
 #define _VALUE_HEURISTIC
@@ -25,12 +26,13 @@
 #include "util/string_array.h"
 #include "constraint_solver/constraint_solver.h"
 
+#define NO_RAND_ASSIGN -600
 
 #define VH_MIN_VALUE 0
 #define VH_UP_CASE 1
 #define VH_UP_CONTAINS 2
 #define VH_BP 3
-#define VH_BP_STACK 4
+#define VH_BP_STACK 4 // Order by stacking energy
 #define VH_RANDOM 5
 #define VH_MULTI_BP_0 6  // Unpaired in other structure 
 #define VH_MULTI_BP_1 7  // Same base pair in other structure 
@@ -41,12 +43,25 @@
 #define VH_MULTI_UP_0 VH_UP_CONTAINS  //  Unpaired position is also unpaired in other structures // A-U-C-G
 #define VH_MULTI_UP_1 VH_RANDOM //  Unpaired position is a normal base pair another structures // RAndom
 #define VH_MULTI_UP_2 12 //  Unpaired position is a closing base pair in other structure // G-C-U-A
+#define VH_THREEP_UP 13 //  Unpaired position is a three prime dangle // Avoid pairing with the 5'
+#define VH_BP_STACK_INV 14 // Inverse to stacking energy 
 
+struct IdxCompare
+{
+    const std::vector<int>& target;
+
+    IdxCompare(const std::vector<int>& target): target(target) {}
+
+    bool operator()(int a, int b) const { return target[a] < target[b]; }
+};
 
 namespace operations_research {
+	// Base value domains
 	const std::vector<int> updomain {0,3,1,2};
 	const std::vector<int> bpdomain {-6,6,-9,9,-11,11}; //GC=-6,CG=6, AU=-9, UA=9, GU=-11, UG=11
-	const std::vector<std::vector<int>> bpdomainMulti {{11,-11,9,-9,6,-6}, // Type 0 - Inverse of normal order
+	
+	// Variables for multiple structures assignment
+	const std::vector<std::vector<int>> bpdomainMulti {{11,-9,-11,9,6,-6}, // Type 0 - Inverse of normal order
 	                                                   {-6,6,-9,9,-11,11}, // Type 1 - Normal order
 	                                                   {-6,6,-11,11,-9,9}, // Type 2
 	                                                   {-6,-11,11,-9,6,9}, // Type 3
@@ -54,7 +69,27 @@ namespace operations_research {
 	                                                   {11,-11,-9,9,6,-6}};// Type 5
 	const std::vector<int> updomainClosing {2,1,3,0};
 
-	
+
+	// Variables for energy based assignment
+	const std::map<int, vector<int> > baseStack {{  0,{0,0,200,200,200,200}},
+	                                             { -6,{-240,-330,-210,-210,-210,-140}},
+	                                             {  6,{-330,-340,-220,-240,-250,-150}},
+	                                             { -9,{-210,-220,-110,-90,-140,-60}},
+	                                             {  9,{-210,-240,-90,-130,-130,-100}},
+	                                             {-11,{-210,-250,-140,-130,-130,-50}},
+	                                             { 11,{-140,-150,-60,-100,-50,30}}};
+
+	const std::map<int, vector<int> > baseStackInv {{  0,{0,0,-200,-200,-200,-200}},
+	                                                { -6,{240,330,210,210,210,140}},
+	                                                {  6,{330,340,220,240,250,150}},
+	                                                { -9,{210,220,110,90,140,60}},
+	                                                {  9,{210,240,90,130,130,100}},
+	                                                {-11,{210,250,140,130,130,50}},
+	                                                { 11,{140,150,60,100,50,-30}}};
+	                                                
+	const std::vector<int> baseEnergyMulti {-290,-223,-190,-137,-103,-10};
+
+
 // replaced inherit VariableSelector
 
 	class FirstUnboundSelector : public BaseObject {
@@ -174,7 +209,8 @@ namespace operations_research {
 			int type_;
 
 	};
-	
+
+		
 	class BpValueSelectorBoltz : public ValueSelector {
 		public:
 			BpValueSelectorBoltz() {
@@ -260,6 +296,93 @@ namespace operations_research {
 			int threshold_;
 	};
 
+
+	class ThreePrimeValueSelector : public ValueSelector {
+		public:
+			ThreePrimeValueSelector(const std::vector<IntVar*>& vars,int threshold) : vars_(vars),threshold_(threshold) {
+//				fivePrimeDom[0] = vector<int> {0,2,1,3};
+//				fivePrimeDom[1] = vector<int> {1,0,3,2};
+//				fivePrimeDom[2] = vector<int> {2,0,3,1};
+//				fivePrimeDom[3] = vector<int> {3,1,2,0};
+				fivePrimeDom[0] = vector<int> {0,2,3,1};
+				fivePrimeDom[1] = vector<int> {1,0,3,2};
+				fivePrimeDom[2] = vector<int> {2,0,3,1};
+				fivePrimeDom[3] = vector<int> {3,2,0,1};
+
+				fivePrimeDom[4] = updomain; 
+			}
+			virtual ~ThreePrimeValueSelector() {}
+			virtual int64 Select(const IntVar* const v, int64 id);
+			std::string DebugString() const { return "ThreePrimeValueSelector"; }
+
+		protected:
+			const std::vector<IntVar*> vars_;
+			std::map<int, vector<int> > fivePrimeDom;
+			int threshold_;
+	};
+
+
+	class SimplifiedBPenergyHeuristic : public ValueSelector {
+		public:
+			SimplifiedBPenergyHeuristic(const std::vector<IntVar*>& vars,int threshold, const vector<int>& value_selector_type) : vars_(vars),threshold_(threshold),value_selector_type_(value_selector_type) {
+				nvars_ = vars.size();
+				if(random_.size() == 0){
+					orderArray_.resize(nvars_);
+					random_.resize(nvars_);
+					baseOrder_.resize(nvars_);
+					for(int i=0; i<nvars_;i++){
+						switch(value_selector_type_.at(i)){
+							case VH_BP:
+								baseOrder_[i] = bpdomain;
+								break;
+							case VH_BP_STACK_INV:
+								baseOrder_[i] = bpdomain;
+								break;
+							case VH_BP_STACK:
+								baseOrder_[i] = bpdomain;
+								break;
+							case VH_MULTI_BP_0:
+								baseOrder_[i] = bpdomainMulti.at(0);
+								break;
+							case VH_MULTI_BP_1:
+								baseOrder_[i] = bpdomainMulti.at(1);
+								break;
+							case VH_MULTI_BP_2:
+								baseOrder_[i] = bpdomainMulti.at(2);
+								break;
+							case VH_MULTI_BP_3:
+								baseOrder_[i] = bpdomainMulti.at(3);
+								break;
+							case VH_MULTI_BP_4:
+								baseOrder_[i] = bpdomainMulti.at(4);
+								break;
+							case VH_MULTI_BP_5:
+								baseOrder_[i] = bpdomainMulti.at(5);
+								break;						
+						}
+					} 
+					for(int i=0; i<nvars_;i++){
+						orderArray_[i]=baseOrder_[i];
+						random_[i].resize(bpdomain.size(),NO_RAND_ASSIGN);
+					}
+				}
+			}
+			virtual ~SimplifiedBPenergyHeuristic() {}
+			virtual int64 Select(const IntVar* const v, int64 id);
+			std::string DebugString() const { return "SimplifiedBPenergyHeuristic"; }
+
+		protected:
+			static std::vector<std::vector<int> > orderArray_;
+			static std::vector<std::vector<int> > random_;
+			static std::vector<std::vector<int> > baseOrder_;	
+		
+			const std::vector<IntVar*> vars_;
+			const std::vector<int> value_selector_type_;
+			int threshold_;
+			int nvars_;
+	};
+
+	
 // replaced inherit public BaseVariableAssignmentSelector
 	class VariableAssignmentSelector : public BaseObject  {
 		public:

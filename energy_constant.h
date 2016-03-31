@@ -41,6 +41,7 @@
 #define ANDRONESCU_07_FILE "ViennaRNA/energy_par_files/rna_andronescu2007.par"  // Energy parameters file for Andronescu '07 model 
 #define RNASTRUCTURE_DIR "RNAstructure/data_tables"    // Energy parameter files directory for RNAstructure model 
 
+#define HH_NO_OVERLAP 0
 #define HH_OVERLAP_SIMPLE 1
 #define HH_OVERLAP_BP 2
 #define HH_OVERLAP_POSITIONS 3
