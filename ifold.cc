@@ -219,16 +219,16 @@ namespace operations_research {
 			}			
 		}
 
-		if(listMinG.size()>0 || listMaxG.size()>0){
-			vector<IntVar*> numG = vector<IntVar *> (n);
+		if(listMinU.size()>0 || listMaxU.size()>0){
+			vector<IntVar*> numU = vector<IntVar *> (n);
 			for(i = 1; i<=n ; i++){
-				numG[i-1] = solver->MakeIsEqualCstVar(vSeq[i],3);		
+				numU[i-1] = solver->MakeIsEqualCstVar(vSeq[i],3);		
 			}
-			for(j=0;j<listMinG.size();j++){
-				solver->AddConstraint(solver->MakeGreaterOrEqual(solver->MakeSum(std::vector<IntVar*>(numG.begin () + get<1>(listMinG[j])-1, numG.begin()+ get<2>(listMinG[j])))->Var(), get<0>(listMinG[j])));
+			for(j=0;j<listMinU.size();j++){
+				solver->AddConstraint(solver->MakeGreaterOrEqual(solver->MakeSum(std::vector<IntVar*>(numU.begin () + get<1>(listMinU[j])-1, numU.begin()+ get<2>(listMinU[j])))->Var(), get<0>(listMinU[j])));
 			}			
-			for(j=0;j<listMaxG.size();j++){
-				solver->AddConstraint(solver->MakeLessOrEqual(solver->MakeSum(std::vector<IntVar*>(numG.begin () + get<1>(listMaxU[j])-1, numG.begin()+ get<2>(listMaxU[j])))->Var(), get<0>(listMaxG[j])));
+			for(j=0;j<listMaxU.size();j++){
+				solver->AddConstraint(solver->MakeLessOrEqual(solver->MakeSum(std::vector<IntVar*>(numU.begin () + get<1>(listMaxU[j])-1, numU.begin()+ get<2>(listMaxU[j])))->Var(), get<0>(listMaxU[j])));
 			}			
 		}
 		

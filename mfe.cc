@@ -1174,7 +1174,7 @@ bool readDatafromFile(std::string inputFile, std::string* strs, int* maxSolution
 	string line;
 	ifstream infile;
 	infile.open (inputFile);
-	vector<char> validIUPAC = {'N','A','C','G','U','V','B','H','D','K','S','W','M','Y','R'}; 
+	vector<char> validIUPAC = {'N','A','C','G','U','V','B','H','D','K','S','W','M','Y','R','&'}; 
 	string currentParameter = ""; 
 	if(infile.fail()){
 		return false;
