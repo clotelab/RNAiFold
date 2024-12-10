@@ -17,6 +17,8 @@
 #include <string.h>
 #include "constraint_solver/constraint_solver.h"
 
+using namespace std; 
+
 namespace operations_research {
 	std::string getNtContent(int* str, vector<IntVar *> seq, int n);
 }

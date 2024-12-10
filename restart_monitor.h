@@ -88,7 +88,7 @@ namespace operations_research {
 		}
 
 		virtual std::string DebugString() const {
-			return StringPrintf("LNSRestart(%f %d)", timeLimit_, maxRestarts_);
+			return absl::StrFormat("LNSRestart(%f %d)", timeLimit_, maxRestarts_);
 		}
 /*		virtual void EnterSearch (){
 			printf("ENTERING SEARCH\n");
@@ -210,7 +210,7 @@ namespace operations_research {
 		}
 
 		virtual std::string DebugString() const {
-			return StringPrintf("HelixLNSRestart(%f %d)", timeLimit_, maxRestarts_);
+			return absl::StrFormat("HelixLNSRestart(%f %d)", timeLimit_, maxRestarts_);
 		}
 /*		virtual void EnterSearch (){
 			printf("ENTERING SEARCH\n");

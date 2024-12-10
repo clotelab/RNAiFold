@@ -15,9 +15,9 @@
 #  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.     *
 #  ******************************************************************************/
 
-ORTOOLS_DIR=$(HOME)/OR-Tools-src/or-tools-4.3
+ORTOOLS_DIR=$(HOME)/OR-Tools-src/or-tools-7.3
 ORTOOLS_DEPENDENCIES_INCLUDES=$(ORTOOLS_DIR)/dependencies/install/include
-ORTOOLS_SRC=$(ORTOOLS_DIR)/src
+ORTOOLS_SRC=$(ORTOOLS_DIR)/ortools
 ORTOOLS_LIB=$(ORTOOLS_DIR)/lib
 ORTOOLS_DEPENDENCIES_LIB=$(ORTOOLS_DIR)/dependencies/install/lib
 ORTOOLS_SRC_GEN=$(ORTOOLS_SRC)/gen
@@ -53,25 +53,44 @@ VIENNA_FILES = data_structures.h  energy_const.h  fold_vars.h  libRNA.a  viennaC
 
 
 CXX     	= g++
-CXXFLAGS        = -fPIC -std=c++0x -O4 -DNDEBUG -I$(ORTOOLS_SRC) -I$(ORTOOLS_DEPENDENCIES_INCLUDES) -I$(ORTOOLS_SRC_GEN) -DARCH_K8 -Wno-deprecated -DUSE_CBC -DUSE_CLP
+###CXXFLAGS        = -fPIC -std=c++0x -O4 -DNDEBUG -I$(ORTOOLS_SRC) -I$(ORTOOLS_DEPENDENCIES_INCLUDES) -DARCH_K8 -Wno-deprecated -DUSE_CBC -DUSE_CLP -DFOLD_DEBUG
+CXXFLAGS        = -fPIC -std=c++0x -O4 -DNDEBUG -I. -I$(ORTOOLS_DIR) -I$(ORTOOLS_SRC) -I$(ORTOOLS_DEPENDENCIES_INCLUDES) -I$(ORTOOLS_SRC_GEN) -DARCH_K8 -Wno-deprecated -DUSE_CBC -DUSE_CLP 
     ifeq (${OPSYSTEM},Linux)
       ############ LINUX ##########################################################
-      LDFLAGS         = -Wl,-Bstatic -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -Wl,-Bdynamic -lortools -lz -lrt -lpthread -lstdc++ -lgcc -lm  -L./RNAstructure -l RNA -l HybridRNA 
+      LDFLAGS         = -Wl,-rpath,$(ORTOOLS_DEPENDENCIES_LIB) -Wl,-rpath,$(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB)  -Wl,-Bdynamic -lortools -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -lglog  -lz -lrt -lpthread -lstdc++ -lgcc -lm -L./ViennaRNA -l RNA -L./RNAstructure -l RNA -l HybridRNA 
     else ifeq (${OPSYSTEM},Mac)
       ############ MAC ############################################################
-      LDFLAGS         = -lconstraint_solver -lglop -llinear_solver -lalgorithms -lshortestpaths -lsat -lgraph -lbase -lutil -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -lz -lpthread -lstdc++ -lm -L./RNAstructure -l RNA -l HybridRNA 
+      LDFLAGS         = -lortools -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -lglog -Wl,-rpath,$(ORTOOLS_DEPENDENCIES_LIB) -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -lz -lpthread -lstdc++ -lm -L./ViennaRNA -l RNA -L./RNAstructure -l RNA -l HybridRNA 
     else ifeq (,${OPSYSTEM})
       ############ NO OS ########################################################
 	  $(error No Operating system defined!!!)
     else ifeq (${OPSYSTEM},Windows)
       ############ WINDOWS ########################################################
-      LDFLAGS         = -Wl,-Bstatic -lconstraint_solver -lglop -llinear_solver -lalgorithms -lshortestpaths -lsat -lgraph -lbase -lutil -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -Wl,-Bdynamic -lz -lrt -lpthread -lstdc++ -lgcc -lm  -L./RNAstructure -l RNA -l HybridRNA 
+      LDFLAGS         = -Wl,-Bstatic -lconstraint_solver -lglop -llinear_solver -lalgorithms -lshortestpaths -lsat -lgraph -lbase -lCbc -lCbcSolver -lClp -lCoinUtils -lOsiClp -lOsiCommonTests -lOsi -lCgl -lprotobuf -lgflags -Wl,-rpath $(ORTOOLS_LIB) -L$(ORTOOLS_LIB) -L$(ORTOOLS_DEPENDENCIES_LIB) -L./ViennaRNA -l RNA -Wl,-Bdynamic -lz -lrt -lpthread -lstdc++ -lgcc -lm  -L./RNAstructure -l RNA -l HybridRNA 
    else
 	  ############ UNKNOWN OS ###################################################
       $(error Unknown Operating system defined: $(OPSYSTEM))
     endif
 
-all: RNAiFold
+all: checkDirectories RNAiFold
+
+checkDirectories:
+	@if [ ! -d "${ORTOOLS_DIR}" ]; then \
+		echo "CANNOT BUILD RNAiFold: The OR-Tools directory ${ORTOOLS_DIR} does not exist. Check the ORTOOLS_DIR variable in Makefile."; \
+		exit 1; \
+	fi; \
+	if [ ! -d "./RNAstructure" ]; then \
+		echo "CANNOT BUILD RNAiFold: Compiled RNAstructure libraries must be copied to RNAstructure directory."; \
+		exit 1; \
+	fi; \
+	if [ ! -d "./ViennaRNA" ]; then \
+		echo "CANNOT BUILD RNAiFold: Compiled ViennaRNA source files must be copied to ViennaRNA directory."; \
+		exit 1; \
+	fi; \
+	if [ ! -f "./ViennaRNA/libRNA.a" ]; then \
+		echo "CANNOT BUILD RNAiFold: Compiled ViennaRNA source files must be copied to ViennaRNA directory."; \
+		exit 1; \
+	fi;
 
 RNAiFold: mfe.o misc.o ifold.o cphelix.o strtree.o strtreegroup.o value_heuristic.o  vienna_constraint.o vienna_plugin.o rnastructure_plugin.o rna_plugin.o restart_monitor.o diversity_measures.o minenergy_constraint.o minensdef_constraint.o helix_constraint.o local_constraint.o energy_constraint.o ensdef_constraint.o aaconstraint.o
 	$(CXX) $(CXXFLAGS) mfe.o misc.o ifold.o cphelix.o strtree.o strtreegroup.o value_heuristic.o  vienna_constraint.o vienna_plugin.o rnastructure_plugin.o rna_plugin.o restart_monitor.o diversity_measures.o minenergy_constraint.o minensdef_constraint.o helix_constraint.o local_constraint.o energy_constraint.o ensdef_constraint.o aaconstraint.o $(LDFLAGS) -o RNAiFold

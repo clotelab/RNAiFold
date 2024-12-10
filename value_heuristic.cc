@@ -338,7 +338,8 @@ namespace operations_research {
 	AssignOneVariableValue::AssignOneVariableValue(IntVar* const v, int64 val) : var_(v), value_(val) {}
 
 	std::string AssignOneVariableValue::DebugString() const {
-		return StringPrintf("[%s == %" GG_LL_FORMAT "d]", var_->DebugString().c_str(),	value_);
+		// return absl::StrFormat("[%s == %" GG_LL_FORMAT "d]", var_->DebugString().c_str(),	value_);
+		return absl::StrFormat("[%s == %d]", var_->DebugString().c_str(),	value_);
 	}
 
 	void AssignOneVariableValue::Apply(Solver* const s) { var_->SetValue(value_); }
@@ -450,8 +451,8 @@ namespace operations_research {
 	    : var_(v), value_(val) {}
 
 	std::string AssignOneNtValue::DebugString() const {
-	  return StringPrintf("[%s == %" GG_LL_FORMAT "d]", var_->DebugString().c_str(),
-		              value_);
+	  // return absl::StrFormat("[%s == %" GG_LL_FORMAT "d]", var_->DebugString().c_str(), value_);
+	  return absl::StrFormat("[%s == %d]", var_->DebugString().c_str(),value_);
 	}
 
 	void AssignOneNtValue::Apply(Solver* const s) { var_->SetValue(value_); }

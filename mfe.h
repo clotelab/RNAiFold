@@ -28,7 +28,7 @@
 #include "base/logging.h"
 #include "constraint_solver/constraint_solver.h"
 
-#define RNAIFOLD_VERSION "3.1"
+#define RNAIFOLD_VERSION "3.2"
 #define RNAIFOLD_NAME "RNAiFold"
 
 #define DEFAULT_MAX_SOLUTIONS 8
@@ -47,6 +47,8 @@
 #define DEFAULT_LNS_RESTART_TIME_MULTIPLIER 0 // 50
 
 #define MAXSIZE 3000
+
+using namespace std;
 
 namespace operations_research {
 	void IfoldCp(std::vector<int*> strs_int, std::vector<int*> int_strs_undet, int n, int maxSolutions, int64 timeLimit, char* sequence, std::vector<AAConstraint*> aaConstraints, int helixHeuristic, int varHeuristic, int randomAssignment, int upthreshold, int bpthreshold, int includeDangles, int dangles, std::string rnaLib, std::string energyModel, std::vector<double> foldTemps, double minGCcont, double maxGCcont, int minAU, int maxAU, int minGC, int maxGC, int minGU, int maxGU,std::vector<std::tuple<int,int,int>> listMinA,std::vector<std::tuple<int,int,int>> listMaxA,std::vector<std::tuple<int,int,int>> listMinC,std::vector<std::tuple<int,int,int>> listMaxC,std::vector<std::tuple<int,int,int>> listMinG,std::vector<std::tuple<int,int,int>> listMaxG,std::vector<std::tuple<int,int,int>> listMinU,std::vector<std::tuple<int,int,int>> listMaxU,std::vector<std::tuple<int,int,int>> listConsA,std::vector<std::tuple<int,int,int>> listConsC,std::vector<std::tuple<int,int,int>> listConsG,std::vector<std::tuple<int,int,int>> listConsU, int MFEstructure, int minimizeMFE, int minimizeEnsDef, int* comp_str_int, vector<pair<int,int>> vIncompBP, int showHelices, std::vector<HelixCstr> helixCstrs, std::vector<LocalCstr> localCstrs, int LNS, int LNSunchangedRestarts, int LNSrestartTime, int showMeasures, int cutPoint);

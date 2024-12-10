@@ -339,9 +339,9 @@ namespace operations_research {
 			vector<IntVar *> order = vector<IntVar *> (nHelices);
 			vector<IntVar *> diff = vector<IntVar *> (nHelices*nHelices);
 			for(int i=0; i<nHelices;i++){
-				order[i] = orderSolver.MakeIntVar(0,nHelices-1,StringPrintf("Order_%03d", i));
+				order[i] = orderSolver.MakeIntVar(0,nHelices-1,absl::StrFormat("Order_%03d", i));
 				for(int j=0; j<nHelices;j++){
-					diff[(i*nHelices)+j]= orderSolver.MakeIntVar(0,degreedist[i][j],StringPrintf("Diff_%03d_%03d", i,j));
+					diff[(i*nHelices)+j]= orderSolver.MakeIntVar(0,degreedist[i][j],absl::StrFormat("Diff_%03d_%03d", i,j));
 				}
 			}
 			

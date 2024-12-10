@@ -47,7 +47,7 @@ class MinEnsDefConstraint : public Constraint {
 		if(cutPoint!= -1){
 			v->setCutPoint(cutPoint_);
 		}
-		vMaxEnsDef = s->MakeIntVar(0,n*ED_PRECISION, StringPrintf("MaxEnsDef"));
+		vMaxEnsDef = s->MakeIntVar(0,n*ED_PRECISION, absl::StrFormat("MaxEnsDef"));
 		obj = s->MakeMinimize(vMaxEnsDef,1);
 		
 		

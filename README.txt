@@ -1,4 +1,4 @@
-RNAiFold3.1 - Clotelab - Boston College
+RNAiFold3.2 - Clotelab - Boston College
 
 /******************************************************************************
  *   Copyright (C) 2014  Juan Antonio Garcia Martin, Peter Clote ,Ivan Dotu   *
@@ -17,15 +17,15 @@ RNAiFold3.1 - Clotelab - Boston College
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.     *
  ******************************************************************************/
 
-COMPILING RNAiFold 3.1:
+COMPILING RNAiFold 3.2:
 
 Requirements:
 	- Software is developed in OR-Tools (https://github.com/google/or-tools), which is required for compiling RNAiFold.
 	- A version of compiled Vienna Package libraries for Linux-amd64 is included. Download and compile the latest vienna libraries for your SO and copy libRNA.a file (from lib directory) into RNAiFold ViennaRNA directory. (This version is tested for ViennaRNA 2.1.9)
 	- A version of compiled RNAstructure libraries for Linux-amd64 and OSX is included. Download (http://rna.urmc.rochester.edu/RNAstructure.html) Compile the latest RNAstructure libraries for your SO and libHybridRNA.so and libRNA.so to RNAiFold RNAstructure directory. (This version is tested for RNAstructure 5.7)
 Compilation step:
-1. Download (https://github.com/google/or-tools) and install OR-Tools following the instructions in the installation guide included.
-2. The expected default directory for OR-Tools installation is $(HOME)/OR-Tools-src/or-tools-read-only, if you install OR-Tools in a different directory change the value of ORTOOLS_DIR into Makefile 
+1. Download (https://github.com/google/or-tools/releases/tag/v7.3) and install OR-Tools 7.3 following the instructions in the installation guide included.
+2. The expected default directory for OR-Tools installation is $(HOME)/OR-Tools-src/or-tools-7.3, if you install OR-Tools in a different directory change the value of ORTOOLS_DIR into Makefile 
 3. Assign the variable ORTOOLS_SRC in Makefile to the directory of your current OR-Tools installation
 4. make
 

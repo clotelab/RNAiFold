@@ -46,6 +46,8 @@
 #define VH_THREEP_UP 13 //  Unpaired position is a three prime dangle // Avoid pairing with the 5'
 #define VH_BP_STACK_INV 14 // Inverse to stacking energy 
 
+using namespace std;
+
 struct IdxCompare
 {
     const std::vector<int>& target;
@@ -71,7 +73,7 @@ namespace operations_research {
 
 
 	// Variables for energy based assignment
-	const std::map<int, vector<int> > baseStack {{  0,{0,0,200,200,200,200}},
+	const std::map<int, std::vector<int> > baseStack {{  0,{0,0,200,200,200,200}},
 	                                             { -6,{-240,-330,-210,-210,-210,-140}},
 	                                             {  6,{-330,-340,-220,-240,-250,-150}},
 	                                             { -9,{-210,-220,-110,-90,-140,-60}},
@@ -106,7 +108,7 @@ namespace operations_research {
 			virtual std::string DebugString() const { return "ChooseFirstUnbound"; }
 
 			std::string VarDebugString() const {
-				return StringPrintf("(%s)", JoinDebugStringPtr(vars_, ", ").c_str());
+				return absl::StrFormat("(%s)", JoinDebugStringPtr(vars_, ", ").c_str());
 			}
 
 		protected:

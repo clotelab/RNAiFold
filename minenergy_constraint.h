@@ -48,7 +48,7 @@ class MinEnergyConstraint : public Constraint {
 		if(trgStr_!=""){
 			v->setTestStructure(trgStr_);
 		}
-		vMaxMFE = s->MakeIntVar(-NO_ENERGY_LIMIT*100,NO_ENERGY_LIMIT*100, StringPrintf("MaxMFE"));
+		vMaxMFE = s->MakeIntVar(-NO_ENERGY_LIMIT*100,NO_ENERGY_LIMIT*100, absl::StrFormat("MaxMFE"));
 		obj = s->MakeMinimize(vMaxMFE,1);
 	}
 

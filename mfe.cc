@@ -1,4 +1,4 @@
-/******************************************************************************
+	/******************************************************************************
  *   Copyright (C) 2014  Juan Antonio Garcia Martin , Peter Clote, Ivan Dotu  *
  *                                                                            *
  *  This program is free software: you can redistribute it and/or modify      *
@@ -176,10 +176,10 @@ static string GetProgramUsage(const char *argv0) {
 	oss << "   " << argv0 << " -InputFile <INPUT_FILE>" << endl << endl;
 	oss << "   " << "Design constraints can be also provided as command line flags or inside the input file using the appropriate label preceeded by the \"pound\" symbol (\"#\") and writing the value in the next line. " << endl;
 	oss << "   Valid labels/flags are: " << endl;
-	vector<google::CommandLineFlagInfo> flags;
-	google::GetAllFlags(&flags);           // flags are sorted by filename, then flagname
+	vector<gflags::CommandLineFlagInfo> flags;
+	gflags::GetAllFlags(&flags);           // flags are sorted by filename, then flagname
 
-	for (vector<google::CommandLineFlagInfo>::const_iterator flag = flags.begin();flag != flags.end();++flag) {
+	for (vector<gflags::CommandLineFlagInfo>::const_iterator flag = flags.begin();flag != flags.end();++flag) {
 		if (flag->filename == "mfe.cc") {
 			oss << "     -"<< flag->name << ": (" << flag->type <<") " << flag->description << ". DEFAULT:"<< flag->default_value << endl; 
 //			oss << DescribeOneFlag(*flag).c_str();
@@ -214,8 +214,8 @@ static string GetProgramUsage(const char *argv0) {
 
 // MAIN function
 int main(int argc, char *argv[]){
-	google::SetUsageMessage(GetProgramUsage(argv[0]));
-	google::SetVersionString(RNAIFOLD_VERSION);
+	gflags::SetUsageMessage(GetProgramUsage(argv[0]));
+	gflags::SetVersionString(RNAIFOLD_VERSION);
 	char sequence[MAXSIZE];
 	vector<string> structures;
 	vector<int*> int_strs;
@@ -226,7 +226,7 @@ int main(int argc, char *argv[]){
 
 	int i,len;
 
-	google::ParseCommandLineFlags(&argc, &argv, true);
+	gflags::ParseCommandLineFlags(&argc, &argv, true);
 	string inputFile = FLAGS_InputFile;
 	string strs = FLAGS_RNAscdstr;
 
@@ -320,7 +320,7 @@ int main(int argc, char *argv[]){
 
 	// Check that RNA structure exists
 	if(strs.empty()){
-		cout << google::ProgramUsage() <<  endl;	
+		cout << gflags::ProgramUsage() <<  endl;	
 		exit(1);
 	}
 	else{
@@ -336,7 +336,7 @@ int main(int argc, char *argv[]){
 			}
 		}
 		catch (exception e){
-			cout << google::ProgramUsage() <<  endl;	
+			cout << gflags::ProgramUsage() <<  endl;	
 			exit(1);
 		}
 	}

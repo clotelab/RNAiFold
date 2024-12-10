@@ -90,7 +90,7 @@ namespace operations_research {
 		vSeqGolomb[0] = solver->MakeIntConst(-1);		
 
 		for(i = 1; i <= n; i++){
-			vSeq[i] = solver->MakeIntVar(IUPAC[sequence[i-1]], StringPrintf("S_%03d", i));		
+			vSeq[i] = solver->MakeIntVar(IUPAC[sequence[i-1]], absl::StrFormat("S_%03d", i));		
 			vSeqGolomb[i] =solver->MakeElement(golomb,vSeq[i])->Var();
 		}	
 		
@@ -111,7 +111,7 @@ namespace operations_research {
 			
 			for(int i=0;i<nCodons;i++){
 
-				vCodons.push_back(solver->MakeIntVar(aaConstraint->getDomain(i), StringPrintf("AA_%03d", i+currentCodons)));	
+				vCodons.push_back(solver->MakeIntVar(aaConstraint->getDomain(i), absl::StrFormat("AA_%03d", i+currentCodons)));	
 
 				// Constraint to transform nucleotides sequence to codons ((vSeq[i*3]-vSeq[(i*3)+1] + ((vSeq[i*3]==vSeq[(i*3)+1])*vSeq[i*3]) + 12)+(vSeq[(i*3)+2] * 25))
 				IntVar* equalSecondFirst = solver->MakeIsEqualVar(vSeqGolomb[(i*3)+aaConstraint->getStartPos()],vSeqGolomb[((i*3)+1)+aaConstraint->getStartPos()]);						
@@ -292,7 +292,7 @@ namespace operations_research {
 			if(str_int.at(str_index)[i]>i){
 				str_BPO.push_back(i);
 				str_BPC.push_back(str_int.at(str_index)[i]);
-				str_vBPs.push_back(solver->MakeIntVar(bpdoms, StringPrintf("BP_%03d_%03d", str_index,nBPs)));
+				str_vBPs.push_back(solver->MakeIntVar(bpdoms, absl::StrFormat("BP_%03d_%03d", str_index,nBPs)));
 				// cout << "BP[" << nBPs << "] = Seq["<< i << "] - Seq["<< str_int.at(str_index)[i] << "]" << endl;
 				IntVar* bpShift = solver->MakeIntConst(11);
 				
@@ -318,7 +318,7 @@ namespace operations_research {
 			vector<IntVar *> vBPComp;
 			for (int i=1; i<=n; i++){
 				if(comp_str_int[i]>i){
-					vBPComp.push_back(solver->MakeIntVar(bpdoms, StringPrintf("BPComp_%03d", nBPComp)));
+					vBPComp.push_back(solver->MakeIntVar(bpdoms, absl::StrFormat("BPComp_%03d", nBPComp)));
 					// cout << "Compatible BP[" << nBPComp << "] = Seq["<< i << "] - Seq["<< comp_str_int[i] << "]" << endl;
 
 					// REPLACED BY GOLOMB
@@ -342,7 +342,7 @@ namespace operations_research {
 		
 	void IFold::AddIncompatibilityConstraint(vector<pair<int,int>> vIncompBP){
 			for(int i=0;i< vIncompBP.size();i++){
-					IntVar * vBPIncomp = solver->MakeIntVar(nobpdoms, StringPrintf("IncompBP_%03d", i));
+					IntVar * vBPIncomp = solver->MakeIntVar(nobpdoms, absl::StrFormat("IncompBP_%03d", i));
 					// REPLACED BY GOLOMB
 					//solver->AddConstraint(solver->MakeEquality(vBPIncomp, solver->MakeDifference(solver->MakeElement(golomb,vSeq[vIncompBP[i].first]),solver->MakeElement(golomb,vSeq[vIncompBP[i].second]))->Var()));
 					solver->AddConstraint(solver->MakeEquality(vBPIncomp, solver->MakeDifference(vSeqGolomb[vIncompBP[i].first],vSeqGolomb[vIncompBP[i].second])->Var()));
@@ -510,7 +510,7 @@ namespace operations_research {
 				int nBPComp=0;
 				for (int j=1; j<=localCstrs[i].getStructureStr().length(); j++){
 					if(localCstrs[i].getStructureArr()[j]>j){
-						vBPComp.push_back(solver->MakeIntVar(bpdoms, StringPrintf("LocalBPComp_%03d", nBPComp)));
+						vBPComp.push_back(solver->MakeIntVar(bpdoms, absl::StrFormat("LocalBPComp_%03d", nBPComp)));
 						solver->AddConstraint(solver->MakeEquality(vBPComp[nBPComp], solver->MakeDifference(vSeqGolomb[localCstrs[i].getStartPos()+j-1],vSeqGolomb[localCstrs[i].getStartPos()+localCstrs[i].getStructureArr()[j]-1])->Var()));
 						//cout << "BP Constraint" << (localCstrs[i].getStartPos()+j-1) <<"-"<<(localCstrs[i].getStartPos()+localCstrs[i].getStructureArr()[j]-1) << "  " << localCstrs[i].getStructureArr()[j]<< "-"<< j <<endl;
 						nBPComp++;
